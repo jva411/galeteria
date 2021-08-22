@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`unit tests of component 'labeled-input' should Labeled Input match with Snapshot 1`] = `
+<div
+  className="labeled-input-div"
+>
+  <input
+    id="id"
+    name="name"
+    onChange={[Function]}
+    placeholder="placeholder"
+    type="text"
+  />
+  <label
+    htmlFor="name"
+  >
+    label
+  </label>
+</div>
+`;

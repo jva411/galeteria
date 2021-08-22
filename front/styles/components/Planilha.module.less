@@ -1,0 +1,203 @@
+div.Planilha {
+    .Header {
+        height: 7.5rem;
+        max-width: 100%;
+        background-color: #E7D842;
+        padding: 0 1.5rem;
+        align-items: center;
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: 0 0.2rem 0.3rem #00000060;
+        
+        p {
+            margin: 0 auto;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+    }
+
+    .Body {
+
+        .Line {
+            position: initial;
+            z-index: 2;
+            max-width: 100%;
+            height: 5rem;
+            border-radius: 50px;
+            margin: 2rem 1.5rem 0 1.5rem;
+            padding: 0 3rem;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            cursor: pointer;
+            outline: none;
+
+            &:hover, &:focus {
+                border: 0.1rem solid #000;
+            }
+
+            p + p {
+                margin-left: 1.5rem;
+                margin-top: 0;
+            }
+
+            .endereco {
+                width: 20rem;
+            }
+
+            .produtos {
+                width: 28rem;
+            }
+
+            .observacoes {
+                width: 25rem;
+            }
+
+            .entregador {
+                width: 24rem;
+                margin-left: 2rem;
+
+                & > button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1.4rem;
+                    font-weight: normal;
+
+                    &:hover, &:focus {
+                        border: 1px inset #000;
+                    }
+                }
+            }
+
+            .estado {
+                margin-left: 3rem;
+                padding: 0 1rem;
+                & span {
+                    font-size: 1.4rem;
+                }
+
+                &:focus, &:focus-within {
+                    outline: 0.1rem solid #000;
+                }
+            }
+
+            .cartao {
+                margin-left: 12rem;
+
+                &:focus, &:focus-within {
+                    outline: 0.1rem solid #000;
+                }
+            }
+
+            .total {
+                margin-left: 14rem;
+            }
+        }
+
+        .PedidoDetails {
+            max-width: 100%;
+            margin: 0 1.5rem 0 1.5rem;
+            padding: 0 3rem 2rem 3rem;
+            min-height: 16rem;
+            height: fit-content;
+            background-color: #ECECEC;
+
+            & > * {
+                margin-top: 2rem;
+            }
+
+            .InputEndereco {
+                height: 3rem;
+                width: 20rem;
+
+                & > a > span {
+                    color: #A6A9B6;
+
+                    & + span {
+                        margin-top: -0.3rem;
+                    }
+                }
+
+                & > a, & > a + div > div {
+                    height: 3rem;
+                    padding-top: 0.4rem;
+                    background: none !important;
+                }
+                & > a + div > div > input {
+                    top: -0.7rem;
+                }
+            }
+
+            .Input {
+                border-radius: 0.7rem;
+                font-size: 1.2rem;
+                background-color: white;
+                padding: 0 1rem;
+                height: 3rem;
+
+                &::placeholder {
+                    color: #A6A9B6;
+                }
+            }
+
+            .Complemento {
+                .Input();
+                margin-top: 0.4rem;
+            }
+
+            .Numero {
+                .Input();
+                margin-left: 0.4rem;
+                width: 8rem;
+            }
+
+            .ProdutosList {
+                margin-left: 4rem;
+                background-color: #49A0FF;
+                border-radius: 0.4rem;
+                min-width: 24rem;
+                max-width: 30rem;
+                min-height: 12rem;
+                height: fit-content;
+                padding: 0.4rem;
+
+                p {
+                    white-space: pre-wrap;
+                    font-weight: 500;
+                    font-size: 1.5rem;
+                }
+            }
+            .InputProduto {
+                .InputEndereco();
+                margin-left: 0.4rem;
+            }
+            .InputProdutoQntd {
+                .Input();
+                margin-left: 0.4rem;
+                width: 7rem;
+            }
+            .LimparProdutos {
+                margin-left: 0.4rem;
+                margin-top: 5rem;
+                width: 15rem;
+                height: 4rem;
+                background-color: #FA5050C0;
+                font-size: 1.6rem;
+                color: white;
+            }
+
+            .InputObs{
+                .Input();
+                margin-left: 4rem;
+                width: 30rem;
+                height: 10rem;
+                resize: unset;
+                padding: 0.7rem;
+            }
+        }
+    }
+}

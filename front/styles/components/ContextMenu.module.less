@@ -1,0 +1,36 @@
+.Menu {
+    min-width: 15rem;
+    width: fit-content;
+    max-width: 25rem;
+    height: fit-content;
+    overflow-x: unset;
+    overflow-y: auto;
+    border: 0.1rem solid #000;
+    position: absolute;
+    background: white;
+
+    &:empty {
+        border: none;
+    }
+
+
+    .Option {
+        cursor: pointer;
+        width: 100%;
+
+        & + .Option {
+            border-top: 1px solid #000;
+        }
+        &:hover {
+            background-color: #D7D7D7;
+        }
+
+        .Label {
+            margin-left: 1.5rem;
+        }
+
+        p, span {
+            text-overflow: ellipsis;
+        }
+    }
+}

@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`unit tests of component Banner should Banner match with Snapshot 1`] = `
+<div
+  className="css-1f132d2"
+>
+  <p
+    className="chakra-text css-w8zzbh"
+  >
+    Lenovo Internal Use Only
+  </p>
+</div>
+`;
