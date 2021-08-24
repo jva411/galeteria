@@ -22,34 +22,34 @@ const states = {
     cancelou: '#DE695D'
 }
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 
 const Line = ({ pedido, index, onChange }) => {
 
     // console.log(pedido)
     // console.log('a')
-    const { entregadores, Produtos } = useGlobalContext()
+    const { entregadores, Produtos, Ruas } = useGlobalContext()
     const [Pedido, setPedido] = React.useState(pedido)
-    const [task, setTask] = React.useState()
     const [lastUpdate, setLastUpdate] = React.useState(pedido.lastUpdate)
     const { isOpen, onOpen, onClose, onToggle } = useDisclosure()
 
-    React.useEffect(() => {
-        if(!task) {
-            setTask(setInterval(async () => {
-                const update = (await instance.get(`/pedido/${index/2}/update`)).data.update
-                if(update !== lastUpdate){
-                    setLastUpdate(update)
-                    const pedido = await instance.get(`/pedido/${index/2}`)
-                    pedido.data.rua = ruas.find(r => r.Rua === pedido.data.rua)
-                    if(!pedido.data.rua) pedido.data.rua = {Rua: '', min: 1, max: 10000}
-                    setPedido({
-                        ...Pedido,
-                        ...pedido.data
-                    })
-                }
-            }, 1000))
+    React.useEffect(async () => {
+        let update = (await instance.get(`/pedido/${index/2}/update`)).data.update
+        while(lastUpdate === update){
+            await sleep(1000)
+            update = (await instance.get(`/pedido/${index/2}/update`)).data.update
         }
-    }, [task])
+
+        const pedido = await instance.get(`/pedido/${index/2}`)
+        pedido.data.rua = Ruas.find(r => r.Rua === pedido.data.rua)
+        if(!pedido.data.rua) pedido.data.rua = {Rua: '', min: 1, max: 10000}
+        setPedido({
+            ...Pedido,
+            ...pedido.data
+        })
+        setLastUpdate(update)
+    }, [lastUpdate])
 
 
     async function handleChange(key, value) {
@@ -141,6 +141,7 @@ const Line = ({ pedido, index, onChange }) => {
         onKeyDown: e => e.stopPropagation()
     }
 
+    if(!Pedido.rua) Pedido.rua = {Rua: '', min: 1, max: 1000}
 
     return (
         <>

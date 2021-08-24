@@ -67,6 +67,7 @@ if(pedidos.length < 30) {
             rua: '',
             numero: 0,
             complemento: '',
+            atualizacoes: [],
             lastUpdate: Date.now()
         })
         i++
@@ -97,12 +98,12 @@ app.get('/pedidos/size', (req, res) => {
     res.json({size: pedidos.length})
 })
 app.get('/pedido/:index', (req, res) => {
-    const index = Number(index)
+    const index = Number(req.params.index)
 
     res.json(pedidos[index])
 })
 app.get('/pedido/:index/update', (req, res) => {
-    const index = Number(index)
+    const index = Number(req.params.index)
 
     res.json({update: pedidos[index].lastUpdate})
 })
@@ -143,6 +144,7 @@ app.post('/pedido/:amount', (req, res) => {
             rua: '',
             numero: 0,
             complemento: '',
+            atualizacoes: [],
             lastUpdate: Date.now()
         })
     lastUpdate = Date.now()
@@ -203,8 +205,9 @@ app.delete('/pedido/:index', async (req, res) => {
 
 
 
-app.listen(5005, '0.0.0.0', 'localhost', () => {
-    console.log('API ouvindo na porta 5005')
+const port = 5001
+app.listen(port, '0.0.0.0', 'localhost', () => {
+    console.log(`API ouvindo na porta ${port}`)
 })
 
 
