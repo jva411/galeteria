@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Header from './header';
 import { ChakraProvider, ColorModeScript, extendTheme } from '@chakra-ui/react';
 
-export default function Layout({ title, children }) {
+export default function Layout({ title, children, hideMenus }) {
     const theme = extendTheme({
         colors: {
             green: '#1DCC0E'
@@ -26,7 +26,7 @@ export default function Layout({ title, children }) {
             <Head>
                 <title>{title}</title>
             </Head>
-            <Header />
+            {hideMenus ? <></> : <Header />}
             {children}
         </ChakraProvider>
     );

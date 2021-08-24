@@ -27,7 +27,7 @@ const pedido = (await db()).pedido
  * @property {number} taxaEntrega
  * @property {number} taxaCartao
  * @property {number} total
- * @property {number} pagamento
+ * @property {number} troco
  * @property {boolean} isCartao
  * @property {string} rua
  * @property {number} numero
@@ -45,8 +45,12 @@ let pedidos
 
 const start = DateTime.fromMillis(Date.now()).startOf('day')
 const end = DateTime.fromMillis(Date.now()).endOf('day')
+// console.log(start.toMillis())
+// console.log(end.toMillis())
 
 pedidos = await pedido.find({iniciado: {$gte: start.toMillis(), $lt: end.toMillis()}}).toArray()
+let lastUpdate = Date.now()
+// console.log(pedidos)
 
 if(pedidos.length < 30) {
     let i = pedidos.length
@@ -69,6 +73,8 @@ if(pedidos.length < 30) {
     }
 }
 
+let queue = []
+
 
 
 
@@ -84,6 +90,9 @@ app.get('/enderecos', (req, res) => {
 app.get('/pedidos', (req, res) => {
     res.json(pedidos)
 })
+app.get('/pedidos/update', (req, res) => {
+    res.json({lastUpdate})
+})
 app.get('/pedidos/size', (req, res) => {
     res.json({size: pedidos.length})
 })
@@ -97,23 +106,46 @@ app.get('/pedido/:index/update', (req, res) => {
 
     res.json({update: pedidos[index].lastUpdate})
 })
+app.get('/impressao', (req, res) => {
+    let Pedido = {}
+    if(queue.length){
+        Pedido = queue[0]
+        if(queue.length > 1) {
+            if(Pedido.printed) Pedido = queue[1]
+            queue.shift()
+        }
+        Pedido.printed = true
+    }
+    const pedido = {...Pedido}
+    delete pedido.printed
+    res.json({Pedido})
+})
+app.put('/impressao', (req, res) => {
+    queue.push(req.body.Pedido)
+
+    res.json({msg: 'Ok'})
+})
 
 
-app.post('/pedido', (req, res) => {
-    pedidos.push({
-        estado: 'naoSaiu',
-        entregador: entregadores[0],
-        produtos: [],
-        observacoes: '',
-        taxaEntrega: 1,
-        taxaCartao: 0,
-        total: 1.0,
-        isCartao: false,
-        rua: '',
-        numero: 0,
-        complemento: '',
-        lastUpdate: Date.now()
-    })
+app.post('/pedido/:amount', (req, res) => {
+    const amount = Number(req.params.amount)
+
+    for(let i=0; i<amount; i++)
+        pedidos.push({
+            estado: 'naoSaiu',
+            entregador: entregadores[0],
+            produtos: [],
+            observacoes: '',
+            taxaEntrega: 1,
+            taxaCartao: 0,
+            total: 1.0,
+            isCartao: false,
+            rua: '',
+            numero: 0,
+            complemento: '',
+            lastUpdate: Date.now()
+        })
+    lastUpdate = Date.now()
 
     res.json({
         index: pedidos.length-1
@@ -171,8 +203,8 @@ app.delete('/pedido/:index', async (req, res) => {
 
 
 
-app.listen(5001, 'localhost', () => {
-    console.log('API ouvindo na porta 5001')
+app.listen(5005, '0.0.0.0', 'localhost', () => {
+    console.log('API ouvindo na porta 5005')
 })
 
 

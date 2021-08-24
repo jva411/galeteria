@@ -11,8 +11,8 @@ import { Box, Center, Divider, Flex, Text } from '@chakra-ui/layout'
 export default function Planilha(props) {
 
     const {pedidos, Ruas, Produtos, entregadores, setPedidos, setRuas, setProdutos, setEntregadores} = useGlobalContext()
-    // const [n, setN] = React.useState(0)
-    // const [merge, setMerge] = React.useState()
+    const [lastUpdate, setLastUpdate] = React.useState(props.lastUpdate)
+    const [task, setTask] = React.useState()
 
     React.useState(() => {
         setRuas(props.ruas)
@@ -21,43 +21,35 @@ export default function Planilha(props) {
         setEntregadores(props.entregadores)
     }, [props.pedidos, props.ruas, props.entregadores, props.produtos])
 
-    function getNewPedido(){
-        return {
-            estado: 'naoSaiu',
-            entregador: entregadores[0],
-            produto: Object.keys(Produtos)[0],
-            produtos: Object.keys(Produtos).reduce((acc, key)=> {
-                acc[key] = 0
-                return acc
-            }, {}),
-            amount: 0,
-            observacoes: 'Bem assado, Trinchado, Abrir no meio, 2 farofas, avisar quando sair',
-            taxaEntrega: 1,
-            taxaCartao: 1,
-            total: "R$" + Number(1).toFixed(2),
-            isCartao: false,
-            rua: Ruas[0],
-            numero: 660,
-            complemento: 'casa 4'
+    React.useEffect(() => {
+        if(!task) {
+            setTask(setTimeout(() => {
+                const last = await instance.get('/pedidos/update')
+                if(last.lastUpdate !== lastUpdate) {
+                    setLastUpdate(last.lastUpdate)
+                    const pedidos2 = await instance.get('/pedidos')
+                    
+                    const Pedidos = pedidos2.data.map((p, idx) => {
+                        p.rua = ruas.data.find(r => r.Rua === p.rua)
+                        if(!p.rua) p.rua = {Rua: '', min: 1, max: 10000}
+
+                        if(idx >= pedidos.length) return p
+                        return {
+                            ...pedidos[idx],
+                            ...p
+                        }
+                    })
+
+                    setPedidos(Pedidos)
+                }
+            }, 1000))
         }
-    }
+    }, [task])
 
-
-
-    // React.useState(() => {
-    //     if(merge) {
-    //         const {index, pedido} = merge
-    //         pedidos[index] = {...pedido}
-    //         setPedidos([...pedidos])
-    //     }
-    // }, [merge])
 
 
     function handleChange(index, pedido) {
-        // setMerge({
-        //     index,
-        //     pedido
-        // })
+        
     }
 
     return (
@@ -118,24 +110,21 @@ export const getServerSideProps = async (context) => {
         const ruas = await instance.get('/enderecos')
         const pedidos = await instance.get('/pedidos')
         const produtos = await instance.get('/cardapio')
+        const lastUpdate = await instance.get('/pedidos/update')
         const entregadores = await instance.get('/entregadores')
 
         const Pedidos = pedidos.data.map(p => {
-            p.produto = produtos.data[1].nome
+            p.index = produtos.data[1].nome
             p.amount = 0
-            
-            const prods = {}
-            p.produtos.map(p => prods[p.produto] = p.amount)
-            p.produtos = prods
 
             p.rua = ruas.data.find(r => r.Rua === p.rua)
             if(!p.rua) p.rua = {Rua: '', min: 1, max: 10000}
             return p
         })
 
-        produtos.data = Object.values(produtos.data).reduce((acc, p) => {
-            if(p.variacoes) acc.concat(p.variacoes.map(v => ({nome: v.nome, preco: v.preco})))
-            else acc.push(p)
+        produtos.data = Object.values(produtos.data).reduce((acc, p, idx) => {
+            if(p.variacoes) acc = acc.concat(p.variacoes.map((v, idx2) => ({nome: v.nome, preco: v.preco, cod: `${idx+1}.${idx2+1}`})))
+            else acc.push({...p, cod: `${idx+1}`})
             return acc
         }, [])
 
@@ -143,8 +132,9 @@ export const getServerSideProps = async (context) => {
         props.pedidos = Pedidos
         props.produtos = produtos.data
         props.entregadores = entregadores.data
+        props.lastUpdate = lastUpdate.data.lastUpdate
     } catch (err) {
-        // console.error(err)
+        console.log('ERROR')
         console.log(err)
     }
 

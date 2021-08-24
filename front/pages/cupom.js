@@ -1,11 +1,15 @@
-export default function Principal(props) {
-    return <div>Hello everyone!</div>
+import Cupom from "~/components/cupom";
+
+export default function CupomPage(props) {
+    return <Cupom />
 }
+
 
 export const getServerSideProps = async (context) => {
     let props = {}
 
     props.title = 'Principal'
+    props.hideMenus = true
 
     return {
         props: props

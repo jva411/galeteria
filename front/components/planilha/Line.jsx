@@ -29,8 +29,8 @@ const Line = ({ pedido, index, onChange }) => {
     // console.log('a')
     const { entregadores, Produtos } = useGlobalContext()
     const [Pedido, setPedido] = React.useState(pedido)
-    const [task, setTask] = React.useState(pedido.lastUpdate)
-    const [lastUpdate, setLastUpdate] = React.useState()
+    const [task, setTask] = React.useState()
+    const [lastUpdate, setLastUpdate] = React.useState(pedido.lastUpdate)
     const { isOpen, onOpen, onClose, onToggle } = useDisclosure()
 
     React.useEffect(() => {
@@ -40,9 +40,6 @@ const Line = ({ pedido, index, onChange }) => {
                 if(update !== lastUpdate){
                     setLastUpdate(update)
                     const pedido = await instance.get(`/pedido/${index/2}`)
-                    const prods = {}
-                    pedido.data.produtos.map(p => prods[p.nome] = p.quantidade)
-                    pedido.data.produtos = prods 
                     pedido.data.rua = ruas.find(r => r.Rua === pedido.data.rua)
                     if(!pedido.data.rua) pedido.data.rua = {Rua: '', min: 1, max: 10000}
                     setPedido({
@@ -52,23 +49,15 @@ const Line = ({ pedido, index, onChange }) => {
                 }
             }, 1000))
         }
-    }, [true])
+    }, [task])
 
 
     async function handleChange(key, value) {
         Pedido[key] = value
         Pedido.total = Pedido.taxaEntrega + Pedido.taxaCartao
 
-        const prods = []
-        Object.keys(Pedido.produtos).filter(p => Pedido.produtos[p] !== 0).map(p => {
-            const P = {
-                nome: p,
-                preco: Produtos.find(x => x.nome === p).preco,
-                quantidade: Pedido.produtos[p]
-            }
-            Pedido.total += P.preco * P.quantidade
-            return p
-        })
+        const prods = Pedido.produtos.filter(x => x.quantidade > 0)
+        prods.map(p => Pedido.total += p.preco * p.quantidade)
         
         setPedido({ ...Pedido })
 
@@ -82,11 +71,6 @@ const Line = ({ pedido, index, onChange }) => {
         delete Pedido2.amount
 
         await instance.put(`/pedido/${index/2}`, Pedido2)
-        // if (task) clearTimeout(task)
-        // setTask(setTimeout(() => {
-        //     onChange(index/2, Pedido)
-        //     setTask(null)
-        // }, 5000))
     }
 
     function handleClick(e) {
@@ -131,7 +115,12 @@ const Line = ({ pedido, index, onChange }) => {
         const options = [
             {
                 label: 'Imprimir',
-                handle: () => console.log('Imprimando... ' + Pedido.entregador)
+                handle: async () => {
+                    const pedido2 = {...Pedido}
+                    pedido2.index = index/2 + 1
+                    await instance.put('/impressao', {Pedido: pedido2})
+                    window.open('/cupom', '_blank')
+                }
             }
         ]
 
@@ -142,12 +131,6 @@ const Line = ({ pedido, index, onChange }) => {
             isOpen: true
         })
     }
-
-    // React.useState(() => {
-    //     if (!lodash.isEqual(pedido, Pedido)) {
-    //         setPedido(pedido)
-    //     }
-    // }, [pedido])
 
 
 
@@ -162,12 +145,15 @@ const Line = ({ pedido, index, onChange }) => {
     return (
         <>
             <Flex className={styles.Line} bg={states[Pedido.estado]} onClick={handleClick} onContextMenu={handleContextMenu} onKeyDown={handleKeyUp} tabIndex={0}>
+                <Text className={styles.Ordem}>
+                    {index/2 + 1}
+                </Text>
                 <Text className={styles.endereco}>
                     {`${Pedido.rua.Rua}, ${Pedido.numero} - ${Pedido.complemento}`}
                 </Text>
 
                 <Text className={styles.produtos}>
-                    {Object.keys(Pedido.produtos).filter(key => Pedido.produtos[key]).map(prod => `${Pedido.produtos[prod]}x ${prod}`).join(' | ')}
+                    {Pedido.produtos.filter(prod => prod.quantidade).map(prod => `${prod.quantidade}x ${prod.nome}`).join(' | ')}
                 </Text>
 
                 <Text className={styles.observacoes}>
@@ -214,7 +200,7 @@ const Line = ({ pedido, index, onChange }) => {
                 </Text>
             </Flex>
             <Collapse in={isOpen} animateOpacity className={styles.Collapse}>
-                <PedidoDetails Pedido={Pedido} handleChange={handleChange} />
+                <PedidoDetails Pedido={Pedido} handleChange={handleChange} index={index/2} />
             </Collapse>
         </>
     )
