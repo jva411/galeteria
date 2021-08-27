@@ -1,5 +1,4 @@
 import React from 'react'
-import { useGlobalContext } from '~/lib/globalContext'
 import styles from '~/styles/components/ContextMenu.module.less'
 import { Box, Flex, Text, useOutsideClick } from '@chakra-ui/react'
 

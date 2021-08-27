@@ -14,7 +14,7 @@ export default function Layout({ title, children, hideMenus }) {
         styles: {
             global: {
                 body: {
-                    margin: '0px'
+                    margin: '0rem'
                 }
             }
         }

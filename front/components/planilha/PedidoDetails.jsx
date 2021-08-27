@@ -1,18 +1,43 @@
 import React from 'react'
 import lodash from 'lodash'
+import { InputPicker } from 'rsuite'
+import { FiPrinter } from 'react-icons/fi'
 import { useGlobalContext } from '~/lib/globalContext'
 import styles from '~/styles/components/Planilha.module.less'
 import { AddIcon, ChevronDownIcon } from '@chakra-ui/icons'
-import { InputPicker } from 'rsuite'
 import {
     Flex, Text, Box, RadioGroup, Radio, Menu, MenuButton, MenuList, MenuItem, MenuDivider, MenuOptionGroup, MenuItemOption,
     Checkbox, Divider, Button, AccordionItem, AccordionButton, AccordionIcon, Accordion, AccordionPanel, List, ListItem,
     Wrap, WrapItem, Center, IconButton, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Input, Textarea,
-    Image, Tooltip, HStack
+    Image, Tooltip, HStack, Spacer
 } from '@chakra-ui/react'
 
 
-const Expansion = ({ Pedido, handleChange, index }) => {
+/**
+ * @param {string} str
+ * 
+ * @returns {string}
+ */
+function sanitize(str) {
+    return str.toLowerCase()
+        .replace(/[áâàäã]/gu, 'a')
+        .replace(/[éêèë]/gu, 'e')
+        .replace(/[íîìï]/gu, 'i')
+        .replace(/[óôòöõ]/gu, 'o')
+        .replace(/[úûùü]/gu, 'u') // ç -> c,  ý -> y
+        .replace(/[ýÿ]/gu, 'y')
+        .replace(/[^a-z 0-9\n]/gu, '')
+}
+
+
+function searchBy(key, label) {
+    const str1 = sanitize(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const str2 = sanitize(label)
+    return str2.match(new RegExp(str1.split('').join('.*')))
+}
+
+
+const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
 
     const { Ruas, Produtos } = useGlobalContext()
 
@@ -28,6 +53,7 @@ const Expansion = ({ Pedido, handleChange, index }) => {
                         placeholder='Selecione a Rua'
                         value={Pedido.rua}
                         cleanable={false}
+                        searchBy={searchBy}
                         onSelect={value => {
                             if(!value) return
                             let n = Pedido.numero
@@ -36,7 +62,7 @@ const Expansion = ({ Pedido, handleChange, index }) => {
                             handleChange('rua', value)
                             if(n !== Pedido.numero) handleChange('numero', n)
                         }}
-                        data={Ruas.map(rua => ({
+                        data={Ruas.ruas.map(rua => ({
                             label: rua.Rua,
                             value: rua
                         }))}
@@ -79,17 +105,14 @@ const Expansion = ({ Pedido, handleChange, index }) => {
                     <InputPicker
                         className={styles.InputProduto}
                         cleanable={false}
+                        searchBy={searchBy}
                         placeholder='Produto'
                         value={Pedido.produto}
                         onSelect={value => {
                             if(!value) return
+                            let idx = Pedido.produtos.findIndex(p => Pedido.produto.nome)
+                            if(idx !== -1 && Pedido.produtos[idx].quantidade === 0) Pedido.produtos.splice(idx, 1)
 
-                            let idx = 0
-                            while(idx < Pedido.produtos.length)
-                                if(Pedido.produtos[idx].nome === Pedido.produto.nome) break
-                                else idx++
-
-                            if(idx < Pedido.produtos.length && Pedido.produtos[idx].quantidade === 0) Pedido.produtos.splice(idx, 1)
                             let amount = 0
                             const has = Pedido.produtos.find(p => p.nome === value.nome)
                             if(has) amount = has.quantidade
@@ -152,6 +175,15 @@ const Expansion = ({ Pedido, handleChange, index }) => {
                     />
                 </NumberInput>
             </Flex>
+
+            <Spacer />
+            <IconButton
+                className={styles.printButton}
+                title='Imprimir'
+                variant='ghost'
+                onClick={imprimir}
+                icon={<FiPrinter />}
+            />
         </Flex>
     )
 }

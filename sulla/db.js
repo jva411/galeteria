@@ -11,9 +11,15 @@ async function init() {
         await client.connect()
         const db = client.db('galeteria')
         const pedido = db.collection('pedido')
+        const produto = db.collection('produto')
+        const endereco = db.collection('endereco')
+        const entregador = db.collection('entregador')
         DB = {
             db,
-            pedido
+            pedido,
+            produto,
+            endereco,
+            entregador
         }
     } catch (err) {
         console.error(err)

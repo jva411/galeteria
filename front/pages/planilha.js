@@ -6,6 +6,7 @@ import { Accordion } from '@chakra-ui/accordion'
 import { useGlobalContext } from '~/lib/globalContext'
 import styles from '~/styles/components/Planilha.module.less'
 import { Box, Center, Divider, Flex, Text } from '@chakra-ui/layout'
+import ConfirmationPopup from '~/components/confirmation-popup'
 
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -24,16 +25,18 @@ export default function Planilha(props) {
     }, [props.pedidos, props.ruas, props.entregadores, props.produtos])
 
     React.useEffect(async () => {
-        let last = await (await instance.get('/pedidos/update')).data.lastUpdate
+        let last = (await instance.get('/pedidos/update')).data.lastUpdate
         while(last === lastUpdate) {
             await sleep(1000)
             last = await (await instance.get('/pedidos/update')).data.lastUpdate
         }
 
         const pedidos2 = await instance.get('/pedidos')
+        const Enderecos = await instance.get('/enderecos')
 
         const Pedidos = pedidos2.data.map((p, idx) => {
-            p.rua = Ruas.find(r => r.Rua === p.rua)
+
+            if(p.rua) p.rua = Enderecos.data.ruas.find(r => r.Rua === p.rua)
             if(!p.rua) p.rua = {Rua: '', min: 1, max: 10000}
             
             if(idx >= pedidos.length) return p
@@ -42,9 +45,10 @@ export default function Planilha(props) {
                 ...p
             }
         })
-        
+
         setPedidos(Pedidos)
-        setLastUpdate(last.lastUpdate)
+        setRuas(Enderecos.data)
+        setLastUpdate(last)
     }, [lastUpdate])
 
 
@@ -52,6 +56,8 @@ export default function Planilha(props) {
     function handleChange(index, pedido) {
         
     }
+
+    if(!pedidos || !entregadores || !Produtos || !Ruas) return <></>
 
     return (
         <>
@@ -78,20 +84,21 @@ export default function Planilha(props) {
                             mt='5rem'
                             bg='green'
                             color='#fff'
-                            fontSize='28px'
-                            borderRadius='30px'
+                            fontSize='2.8rem'
+                            borderRadius='3rem'
                             onClick={async () => {
                                 await instance.post('/pedido/1')
                                 const Pedidos = await instance.get('/pedidos')
                                 setPedidos(Pedidos.data)
                             }}
                             _hover={{ bg: 'green', cursor: 'pointer' }}
-                            textShadow='1px 1px 2px #000, -1px -1px 2px, 1px -1px 2px, -1px 1px 2px #000'
+                            textShadow='0.1rem 0.1rem 0.2rem #000, -0.1rem -0.1rem 0.2rem, 0.1rem -0.1rem 0.2rem, -0.1rem 0.1rem 0.2rem #000'
                             _active={{ bg: 'green', transform: 'scale(0.95)' }}
                         >
                             Novo Pedido
                         </Button>
                     </Center>
+                    <ConfirmationPopup />
                 </Box>
             </Box>
         </>
@@ -112,10 +119,10 @@ export const getServerSideProps = async (context) => {
         const entregadores = await instance.get('/entregadores')
 
         const Pedidos = pedidos.data.map(p => {
-            p.index = produtos.data[1].nome
+            p.produto = produtos.data[1]
             p.amount = 0
 
-            p.rua = ruas.data.find(r => r.Rua === p.rua)
+            if(p.rua) p.rua = ruas.data.ruas.find(r => r.Rua === p.rua)
             if(!p.rua) p.rua = {Rua: '', min: 1, max: 10000}
             return p
         })

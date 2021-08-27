@@ -8,7 +8,7 @@ export default function CupomPage(props) {
 export const getServerSideProps = async (context) => {
     let props = {}
 
-    props.title = 'Principal'
+    props.title = 'Cupom'
     props.hideMenus = true
 
     return {

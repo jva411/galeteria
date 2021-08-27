@@ -34,6 +34,12 @@ const Line = ({ pedido, index, onChange }) => {
     const [lastUpdate, setLastUpdate] = React.useState(pedido.lastUpdate)
     const { isOpen, onOpen, onClose, onToggle } = useDisclosure()
 
+    React.useEffect(() => {
+        if(!lodash.isEqual(Pedido, pedido)) {
+            setPedido(pedido)
+        }
+    }, [pedido])
+
     React.useEffect(async () => {
         let update = (await instance.get(`/pedido/${index/2}/update`)).data.update
         while(lastUpdate === update){
@@ -42,7 +48,7 @@ const Line = ({ pedido, index, onChange }) => {
         }
 
         const pedido = await instance.get(`/pedido/${index/2}`)
-        pedido.data.rua = Ruas.find(r => r.Rua === pedido.data.rua)
+        pedido.data.rua = Ruas.ruas.find(r => r.Rua === pedido.data.rua)
         if(!pedido.data.rua) pedido.data.rua = {Rua: '', min: 1, max: 10000}
         setPedido({
             ...Pedido,
@@ -69,6 +75,7 @@ const Line = ({ pedido, index, onChange }) => {
         }
         delete Pedido2.produto
         delete Pedido2.amount
+        delete Pedido2.index
 
         await instance.put(`/pedido/${index/2}`, Pedido2)
     }
@@ -104,6 +111,13 @@ const Line = ({ pedido, index, onChange }) => {
         }
     }
 
+    async function imprimir() {
+        const pedido2 = {...Pedido}
+        pedido2.index = index/2 + 1
+        await instance.put('/impressao', {Pedido: pedido2})
+        window.open('/cupom', '_blank')
+    }
+
     /**
      * @param {React.MouseEvent<HTMLDivElement>} e 
      */
@@ -115,12 +129,7 @@ const Line = ({ pedido, index, onChange }) => {
         const options = [
             {
                 label: 'Imprimir',
-                handle: async () => {
-                    const pedido2 = {...Pedido}
-                    pedido2.index = index/2 + 1
-                    await instance.put('/impressao', {Pedido: pedido2})
-                    window.open('/cupom', '_blank')
-                }
+                handle: imprimir
             }
         ]
 
@@ -201,7 +210,7 @@ const Line = ({ pedido, index, onChange }) => {
                 </Text>
             </Flex>
             <Collapse in={isOpen} animateOpacity className={styles.Collapse}>
-                <PedidoDetails Pedido={Pedido} handleChange={handleChange} index={index/2} />
+                <PedidoDetails Pedido={Pedido} handleChange={handleChange} index={index/2} imprimir={imprimir} />
             </Collapse>
         </>
     )

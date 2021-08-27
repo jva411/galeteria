@@ -42,6 +42,7 @@ const Cupom = () => {
             <Text>{`(${pedido.index}º)`}</Text>
             <Text>Disk Frango Real</Text>
             <Text>98509-7224/3245-8939</Text>
+            <Text mt='1.4rem' textAlign='justify'>{`${pedido.rua.Rua}, ${pedido.numero} - ${pedido.complemento}`}</Text>
 
 
             <Text>{`-------------------------------`}</Text>

@@ -5,9 +5,9 @@ const GlobalContext = React.createContext()
 export default function GlobalContextProvider({ children }){
 
     const [pedidos, setPedidos] = React.useState([])
-    const [Ruas, setRuas] = React.useState(require('~/config/enderecos.json').sort())
-    const [Produtos, setProdutos] = React.useState(require('~/config/produtos.json'))
-    const [entregadores, setEntregadores] = React.useState(require('~/config/entregadores.json'))
+    const [Ruas, setRuas] = React.useState([])
+    const [Produtos, setProdutos] = React.useState([])
+    const [entregadores, setEntregadores] = React.useState([])
 
     return(
         <GlobalContext.Provider
