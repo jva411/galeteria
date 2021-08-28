@@ -1,4 +1,5 @@
 import React from 'react'
+import lodash from 'lodash'
 import instance from '~/lib/axiosConfig'
 import { Button } from '@chakra-ui/button'
 import Line from '~/components/planilha/Line'
@@ -46,18 +47,17 @@ export default function Planilha(props) {
             }
         })
 
+        setLastUpdate(last)
         setPedidos(Pedidos)
         setRuas(Enderecos.data)
-        setLastUpdate(last)
     }, [lastUpdate])
-
 
 
     function handleChange(index, pedido) {
         
     }
 
-    if(!pedidos || !entregadores || !Produtos || !Ruas) return <></>
+    if(lodash.isEmpty(pedidos) || lodash.isEmpty(entregadores) || lodash.isEmpty(Produtos) || lodash.isEmpty(Ruas)) return <></>
 
     return (
         <>
@@ -88,8 +88,8 @@ export default function Planilha(props) {
                             borderRadius='3rem'
                             onClick={async () => {
                                 await instance.post('/pedido/1')
-                                const Pedidos = await instance.get('/pedidos')
-                                setPedidos(Pedidos.data)
+                                // const Pedidos = await instance.get('/pedidos')
+                                // setPedidos(Pedidos.data)
                             }}
                             _hover={{ bg: 'green', cursor: 'pointer' }}
                             textShadow='0.1rem 0.1rem 0.2rem #000, -0.1rem -0.1rem 0.2rem, 0.1rem -0.1rem 0.2rem, -0.1rem 0.1rem 0.2rem #000'

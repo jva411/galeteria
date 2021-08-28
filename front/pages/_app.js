@@ -1,5 +1,6 @@
 import '~/styles/globals.css'
 import 'rsuite/lib/styles/index.less'
+import '~/styles/rsuite-fixes.less'
 import Layout from '~/components/layout'
 import ContextMenu from '~/components/context-menu'
 import GlobalContextProvider from '~/lib/globalContext'

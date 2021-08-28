@@ -205,7 +205,10 @@ app.delete('/pedido/:index', async (req, res) => {
 })
 
 
+// ---------------------------------------------------------- //
 //                           ENDEREÇOS                        //
+// ---------------------------------------------------------- //
+
 
 app.get('/enderecos', (req, res) => {
     res.json(enderecos)
@@ -271,8 +274,8 @@ app.post('/endereco', async (req, res) => {
 
 
 
-const port = 5001
-app.listen(port, '0.0.0.0', 'localhost', () => {
+const port = 25566
+app.listen(port, () => {
     console.log(`API ouvindo na porta ${port}`)
 })
 

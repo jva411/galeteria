@@ -52,7 +52,7 @@ export default function Header() {
             h='7.5rem'
             w='100%'
             top='0'
-            zIndex='1'
+            zIndex='5'
             bg='white'
             position='sticky'
             justifyContent='space-between'

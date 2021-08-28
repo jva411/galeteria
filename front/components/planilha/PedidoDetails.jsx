@@ -11,6 +11,7 @@ import {
     Wrap, WrapItem, Center, IconButton, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Input, Textarea,
     Image, Tooltip, HStack, Spacer
 } from '@chakra-ui/react'
+import { openPopup } from '../confirmation-popup'
 
 
 /**
@@ -31,18 +32,30 @@ function sanitize(str) {
 
 
 function searchBy(key, label) {
-    const str1 = sanitize(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const str1 = sanitize(key)
     const str2 = sanitize(label)
-    return str2.match(new RegExp(str1.split('').join('.*')))
+    return str2.match(new RegExp(str1.split('').join('.{0,6}')))
 }
 
 
 const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
 
     const { Ruas, Produtos } = useGlobalContext()
+    const ref = React.useRef()
 
     let customClassName = styles.InputEndereco
     if(Pedido.rua && Pedido.rua.Rua) customClassName = styles.InputValuedEndereco
+
+
+    function limparProdutos(){
+        openPopup({
+            message: 'Você deseja realmente limpar a lista de produtos deste pedido?',
+            action: 'Limpar',
+            confirmation: () => handleChange('produtos', []),
+            ref: ref
+        })
+    }
+
 
     return (
         <Flex className={styles.PedidoDetails}>
@@ -123,6 +136,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                             label: `${prod.cod} - ${prod.nome}`,
                             value: prod
                         }))}
+                        
                     />
                     <NumberInput
                         min={0}
@@ -142,17 +156,10 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                             handleChange('amount', value)
                         }}
                     >
-                        <NumberInputField
-                            placeholder='Quantidade'
-                            className={styles.InputProdutoQntd}
-                        />
-                        <NumberInputStepper>
-                            <NumberIncrementStepper />
-                            <NumberDecrementStepper />
-                        </NumberInputStepper>
+                        <NumberInputField className={styles.InputProdutoQntd} placeholder='Quantidade' />
                     </NumberInput>
                 </Flex>
-                <Button className={styles.LimparProdutos} onClick={() => handleChange('produtos', [])}>
+                <Button className={styles.LimparProdutos} onClick={limparProdutos} ref={ref}>
                     Limpar produtos
                 </Button>
             </Box>

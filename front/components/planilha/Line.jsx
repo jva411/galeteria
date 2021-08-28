@@ -29,7 +29,7 @@ const Line = ({ pedido, index, onChange }) => {
 
     // console.log(pedido)
     // console.log('a')
-    const { entregadores, Produtos, Ruas } = useGlobalContext()
+    const { entregadores, Ruas } = useGlobalContext()
     const [Pedido, setPedido] = React.useState(pedido)
     const [lastUpdate, setLastUpdate] = React.useState(pedido.lastUpdate)
     const { isOpen, onOpen, onClose, onToggle } = useDisclosure()
