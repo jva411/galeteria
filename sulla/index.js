@@ -31,7 +31,7 @@ import cardapio from './config/cardapio.js'
  * @type {object}
  * @property {DateTime} timestamp
  * @property {string} chatId
- * @property {('inicio'|'selecionando'|'selecionando2'|'quantificando'|'quantidade'|'decidindo'|'lugar'|'removendo'|'fechando'|'concluido'|'pagamento')} status
+ * @property {('inicio'|'selecionando'|'selecionando2'|'quantificando'|'quantidade'|'decidindo'|'lugar'|'removendo'|'fechando'|'concluido'|'pagamento'|'troco')} status
  * @property {number} attempts
  * @property {Produto[]} produtos
  * @property {number} taxa
@@ -246,11 +246,13 @@ client.onMessage(message => {
             try {
                 numero = Number(endereco[1])
                 if(isNaN(numero) || numero < 1 ||  numero > 5000) {
-                    client.sendText(message.from, 'Desculpe, não consegui identificar o endereço, veja o exemplo acima e tente novamente')
+                    client.sendText(message.from, 'Desculpe, não consegui processar o endereço, veja o exemplo acima e tente novamente')
+                    cliente.attempts += 1
                     return
                 }
             } catch (ex) {
-                client.sendText(message.from, 'Desculpe, não entendi o endereço, veja o exemplo acima e tente novamente')
+                client.sendText(message.from, 'Desculpe, não consegui processar o endereço, veja o exemplo acima e tente novamente')
+                cliente.attempts += 1
                 return
             }
             const [rua] = endereco
@@ -263,9 +265,28 @@ client.onMessage(message => {
             if (!complemento) delete cliente.endereco.complemento
 
             cliente.status = 'pagamento'
-            cliente.sendText(message.from, 'Selecione a forma de pagamento:\n')
-        }
+            cliente.sendText(message.from,
+                'Por favor, indque a forma de pagamento:\n' +
+                '1 - Dinheiro\n' +
+                '2 - Cartão\n' +
+                '3 - PIX (Um atendente irá pedir o comprovante para concluir o pedido)'
+            )
+        } else if (cliente.status === 'pagamento') {
+            const opcao = Number(msg)
+            if (isNaN(opcao) || opcao < 1 || opcao > 3) {
+                client.sendText(message.from, 'Desculpe, mas esta não é uma opção válida!')
+                cliente.attempts += 1
+                return
+            }
 
+            cliente.attempts = 0
+            if(opcao === 1) {
+                cliente.status = 'troco'
+                    
+            } else {
+                cliente.status = 'fechando'
+            }
+        }
     } catch (err) {
         console.log(`${colors.FgRed}Internal Error`)
         console.log(cliente)
