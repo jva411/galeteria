@@ -36,6 +36,8 @@ import cardapio from './config/cardapio.js'
  * @property {Produto[]} produtos
  * @property {number} taxa
  * @property {number} total
+ * @property {number} [troco]
+ * @property {('dinheiro'|'PIX'|'cartão')} pagamento
  * @property {Produto} produto
  * @property {Endereco} endereco
  * @property {string} observacao
@@ -282,10 +284,30 @@ client.onMessage(message => {
             cliente.attempts = 0
             if(opcao === 1) {
                 cliente.status = 'troco'
-                    
+                cliente.pagamento = 'dinheiro'
+                client.sendText(message.from, 'Digite o valor que você irá pagar')
             } else {
                 cliente.status = 'fechando'
+                if(opcao === 2) cliente.pagamento = 'cartão'
+                else cliente.pagamento = 'PIX'
+                client.sendText(message.from, '')
             }
+        } else if (cliente.status === 'troco') {
+            let troco = message.body.match(/\d{1,3}(.*[.,]\d{1:2})?/gu)
+            if (troco) troco = Number(troco[0])
+            if(!troco || isNaN(troco)) {
+                client.sendText(message.from, 'Desculpe, não consegui processar o valor, tente novamente')
+                cliente.attempts += 1
+                return
+            }
+            cliente.attempts = 0
+            if(troco < cliente.total) {
+                client.sendText(message.from, 'Você não pode pagar um valor menor do que o total')
+                client.sendText(message.from, `O total da sua compra deu R$ ${cliente.total}`)
+                return
+            }
+        } else if (cliente.status === 'fechando') {
+
         }
     } catch (err) {
         console.log(`${colors.FgRed}Internal Error`)
