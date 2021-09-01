@@ -79,6 +79,7 @@ if(pedidos.length < 30) {
 }
 
 let queue = []
+let cupom = {}
 
 
 
@@ -98,6 +99,9 @@ app.get('/pedidos/update', (req, res) => {
 app.get('/pedidos/size', (req, res) => {
     res.json({size: pedidos.length})
 })
+app.get('/pedidos/important', (req, res) => {
+    res.json(pedidos.filter(p => p._id))
+})
 app.get('/pedido/:index', (req, res) => {
     const index = Number(req.params.index)
 
@@ -109,17 +113,12 @@ app.get('/pedido/:index/update', (req, res) => {
     res.json({update: pedidos[index].lastUpdate})
 })
 app.get('/impressao', (req, res) => {
-    let Pedido = {}
-    if(queue.length){
-        Pedido = queue[0]
-        if(queue.length > 1) {
-            if(Pedido.printed) Pedido = queue[1]
-            queue.shift()
-        }
-        Pedido.printed = true
+    let Pedido = cupom
+    if(queue.length) {
+        Pedido = queue.shift()
+        cupom = Pedido
     }
     const pedido = {...Pedido}
-    delete pedido.printed
     res.json({Pedido})
 })
 app.put('/impressao', (req, res) => {
@@ -161,9 +160,11 @@ app.put('/pedido/:index', async (req, res) => {
     const lastEstado = Pedido.estado
     const body = req.body
 
-    Object.assign(Pedido, body)
     const now = Date.now()
     Pedido.lastUpdate = now
+    res.json({message: 'Ok', lastUpdate: now})
+
+    Object.assign(Pedido, body)
     if(lastEstado !== Pedido.estado) {
         Pedido.atualizacoes.push({
             estado: Pedido.estado,
@@ -181,12 +182,10 @@ app.put('/pedido/:index', async (req, res) => {
         const doc = {...Pedido}
         delete doc._id
         const id = `${Pedido._id}`
-        const res = await pedido.updateOne({_id: ObjectId(id)}, {$set: doc})
-        // console.log(res)
+        pedido.updateOne({_id: ObjectId(id)}, {$set: doc})
     }
 
     pedidos[index] = {...Pedido}
-    res.json({message: 'Ok'})
 })
 
 app.delete('/pedido/:index', async (req, res) => {
@@ -274,7 +273,7 @@ app.post('/endereco', async (req, res) => {
 
 
 
-const port = 25566
+const port = 5001
 app.listen(port, () => {
     console.log(`API ouvindo na porta ${port}`)
 })

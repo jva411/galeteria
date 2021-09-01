@@ -23,65 +23,77 @@ const states = {
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+let ignore = false
 
 
-const Line = ({ pedido, index, onChange }) => {
+const Line = ({ pedido, index, planilha }) => {
 
     // console.log(pedido)
     // console.log('a')
-    const { entregadores, Ruas } = useGlobalContext()
-    const [Pedido, setPedido] = React.useState(pedido)
-    const [lastUpdate, setLastUpdate] = React.useState(pedido.lastUpdate)
-    const { isOpen, onOpen, onClose, onToggle } = useDisclosure()
+    const { entregadores, Ruas, Produtos } = useGlobalContext()
+    const [Props, setProps] = React.useState({
+        Pedido: pedido,
+        lastUpdate: pedido.lastUpdate,
+        isOpen: false
+    })
 
     React.useEffect(() => {
-        if(!lodash.isEqual(Pedido, pedido)) {
-            setPedido(pedido)
+        if(!lodash.isEqual(Props.Pedido, pedido)) {
+            Props.Pedido = pedido
+            setProps({...Props})
         }
     }, [pedido])
 
     React.useEffect(async () => {
         let update = (await instance.get(`/pedido/${index/2}/update`)).data.update
-        while(lastUpdate === update){
+        while(Props.lastUpdate === update){
             await sleep(1000)
             update = (await instance.get(`/pedido/${index/2}/update`)).data.update
+        }
+        if(ignore){
+            ignore = false
+            return
         }
 
         const pedido = await instance.get(`/pedido/${index/2}`)
         pedido.data.rua = Ruas.ruas.find(r => r.Rua === pedido.data.rua)
         if(!pedido.data.rua) pedido.data.rua = {Rua: '', min: 1, max: 10000}
-        setPedido({
-            ...Pedido,
+        Props.Pedido = {
+            ...Props.Pedido,
             ...pedido.data
-        })
-        setLastUpdate(update)
-    }, [lastUpdate])
+        }
+        Props.lastUpdate = update
+        setProps({...Props})
+    }, [Props.lastUpdate])
 
 
     async function handleChange(key, value) {
-        Pedido[key] = value
-        Pedido.total = Pedido.taxaEntrega + Pedido.taxaCartao
+        const p = {...Props.Pedido}
 
-        const prods = Pedido.produtos.filter(x => x.quantidade > 0)
-        prods.map(p => Pedido.total += p.preco * p.quantidade)
-        
-        setPedido({ ...Pedido })
+        if(typeof key !== 'undefined') p[key] = value
+        p.total = p.taxaEntrega + p.taxaCartao
 
+        const prods = p.produtos.filter(x => x.quantidade > 0)
+        for(let P of prods) p.total += P.preco * P.quantidade
 
-        const Pedido2 = {
-            ...Pedido,
-            produtos: prods,
-            rua: Pedido.rua.Rua
-        }
-        delete Pedido2.produto
-        delete Pedido2.amount
-        delete Pedido2.index
+        Props.Pedido = {...p}
 
-        await instance.put(`/pedido/${index/2}`, Pedido2)
+        p.produtos = prods
+        p.rua = Props.Pedido.rua.Rua
+        delete p.produto
+        delete p.amount
+        delete p.index
+
+        const lu = await instance.put(`/pedido/${index/2}`, p)
+        ignore = true
+        Props.lastUpdate = lu.data.lastUpdate
+        // console.log(Props.Pedido.observacoes)
+        setProps({...Props})
     }
 
     function handleClick(e) {
-        onToggle();
+        Props.isOpen = !Props.isOpen;
+        setProps({...Props})
     }
 
     /**
@@ -100,19 +112,26 @@ const Line = ({ pedido, index, onChange }) => {
             parent.children[next].focus()
             e.preventDefault()
         } else if (e.key === 'ArrowRight') {
-            onOpen()
+            if(!Props.isOpen){
+                Props.isOpen = true
+                setProps({...Props})
+            }
             e.preventDefault()
         } else if (e.key === 'ArrowLeft') {
-            onClose()
+            if(Props.isOpen){
+                Props.isOpen = false
+                setProps({...Props})
+            }
             e.preventDefault()
         } else if (e.key === ' ' || e.key === 'Enter') {
-            onToggle()
+            Props.isOpen = !Props.isOpen
+            setProps({...Props})
             e.preventDefault()
         }
     }
 
     async function imprimir() {
-        const pedido2 = {...Pedido}
+        const pedido2 = {...Props.Pedido}
         pedido2.index = index/2 + 1
         await instance.put('/impressao', {Pedido: pedido2})
         window.open('/cupom', '_blank')
@@ -150,35 +169,42 @@ const Line = ({ pedido, index, onChange }) => {
         onKeyDown: e => e.stopPropagation()
     }
 
-    if(!Pedido.rua) Pedido.rua = {Rua: '', min: 1, max: 1000}
+    if(!Props.Pedido.rua) Props.Pedido.rua = {Rua: '', min: 1, max: 1000}
+    if(!Props.Pedido.produto) Props.Pedido.produto = {label: 'Selecione um produto', value: {quantidade: 0}}
+
+    if(planilha.entregadorFiltro || planilha.estadoFiltro) {
+        if(!Props.Pedido.rua.Rua) return <></>
+        if(planilha.entregadorFiltro && planilha.entregadorFiltro !== Props.Pedido.entregador) return <></>
+        if(planilha.estadoFiltro && planilha.estadoFiltro !== Props.Pedido.estado) return <></>
+    }
 
     return (
         <>
-            <Flex className={styles.Line} bg={states[Pedido.estado]} onClick={handleClick} onContextMenu={handleContextMenu} onKeyDown={handleKeyUp} tabIndex={0}>
+            <Flex className={styles.Line} bg={states[Props.Pedido.estado]} onClick={handleClick} onContextMenu={handleContextMenu} onKeyDown={handleKeyUp} tabIndex={0}>
                 <Text className={styles.Ordem}>
                     {index/2 + 1}
                 </Text>
                 <Text className={styles.endereco}>
-                    {`${Pedido.rua.Rua}, ${Pedido.numero} - ${Pedido.complemento}`}
+                    {`${Props.Pedido.rua.Rua}, ${Props.Pedido.numero} - ${Props.Pedido.complemento}`}
                 </Text>
 
                 <Text className={styles.produtos}>
-                    {Pedido.produtos.filter(prod => prod.quantidade).map(prod => `${prod.quantidade}x ${prod.nome}`).join(' | ')}
+                    {Props.Pedido.produtos.filter(prod => prod.quantidade).map(prod => `${prod.quantidade}x ${prod.nome}`).join(' | ')}
                 </Text>
 
                 <Text className={styles.observacoes}>
-                    {Pedido.observacoes}
+                    {Props.Pedido.observacoes}
                 </Text>
 
-                <Menu closeOnSelect={false}>
+                <Menu>
                     {({ isOpen }) => (
                         <>
                             <Box className={styles.entregador} {...stopEvents}>
                                 <MenuButton as={Button} rightIcon={isOpen? <ChevronUpIcon /> : <ChevronDownIcon />}>
-                                    {Pedido.entregador}
+                                    {Props.Pedido.entregador}
                                 </MenuButton>
                             </Box>
-                            <MenuList pos='absolute'  {...stopEvents}>
+                            <MenuList pos='absolute' {...stopEvents}>
                                 <MenuOptionGroup type='radio' onChange={value => handleChange('entregador', value)}>
                                     {entregadores.map((entr, index) =>
                                         <MenuItemOption key={index} value={entr}>
@@ -191,7 +217,7 @@ const Line = ({ pedido, index, onChange }) => {
                     )}
                 </Menu>
 
-                <RadioGroup className={styles.estado} value={Pedido.estado} onChange={value => handleChange('estado', value)} {...stopEvents}>
+                <RadioGroup className={styles.estado} value={Props.Pedido.estado} onChange={value => handleChange('estado', value)} {...stopEvents}>
                     <HStack spacing='1rem'>
                         <Radio value='naoSaiu'>Novo</Radio>
                         <Radio value='saiu'>Em Rota</Radio>
@@ -202,15 +228,15 @@ const Line = ({ pedido, index, onChange }) => {
                 </RadioGroup>
 
                 <Flex className={styles.cartao} {...stopEvents}>
-                    <Checkbox isChecked={Pedido.isCartao} onChange={e => handleChange('isCartao', e.target.checked)} />
+                    <Checkbox isChecked={Props.Pedido.isCartao} onChange={e => handleChange('isCartao', e.target.checked)} />
                 </Flex>
 
                 <Text className={styles.total}>
-                    {'R$' + Pedido.total.toFixed(2)}
+                    {'R$' + Props.Pedido.total.toFixed(2)}
                 </Text>
             </Flex>
-            <Collapse in={isOpen} animateOpacity className={styles.Collapse}>
-                <PedidoDetails Pedido={Pedido} handleChange={handleChange} index={index/2} imprimir={imprimir} />
+            <Collapse in={Props.isOpen} animateOpacity className={styles.Collapse}>
+                <PedidoDetails Pedido={Props.Pedido} handleChange={handleChange} index={index/2} imprimir={imprimir} />
             </Collapse>
         </>
     )

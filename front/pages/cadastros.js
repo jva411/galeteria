@@ -3,7 +3,6 @@ import instance from '~/lib/axiosConfig'
 import { useGlobalContext } from '~/lib/globalContext'
 import Enderecos from '~/components/cadastros/enderecos'
 import styles from '~/styles/components/Cadastros.module.less'
-import ConfirmationPopup from '~/components/confirmation-popup'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react'
 
 
@@ -22,7 +21,6 @@ export default function Cadastros(props) {
 
     return (
         <>
-            <ConfirmationPopup />
             <Tabs variant='enclosed' className={styles.tabs}>
                 <TabList className={styles.tabList}>
                     <Tab>Endereços</Tab>

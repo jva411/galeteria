@@ -31,11 +31,16 @@ function sanitize(str) {
 }
 
 
+let buffer = ''
+let task = null
+
+
 function searchBy(key, label) {
     const str1 = sanitize(key)
     const str2 = sanitize(label)
     return str2.match(new RegExp(str1.split('').join('.{0,6}')))
 }
+let delay = Date.now()
 
 
 const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
@@ -43,6 +48,12 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
     const { Ruas, Produtos } = useGlobalContext()
     const ref = React.useRef()
 
+    
+    if(task) {
+        clearTimeout(task)
+        buffer = Pedidos.observacoes + buffer
+        handleChange('observacoes', buffer)
+    } else buffer = Pedido.observacoes
     let customClassName = styles.InputEndereco
     if(Pedido.rua && Pedido.rua.Rua) customClassName = styles.InputValuedEndereco
 
@@ -55,6 +66,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
             ref: ref
         })
     }
+    
 
 
     return (
@@ -81,7 +93,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                         }))}
                     />
 
-                    <NumberInput min={Pedido.rua.min} max={Pedido.rua.max} defaultValue={Pedido.numero} /*onChange={e => console.log(e)}*/ >
+                    <NumberInput min={Pedido.rua.min} max={Pedido.rua.max} defaultValue={Pedido.numero} >
                         <NumberInputField
                             className={styles.Numero}
                             placeholder='Número'
@@ -120,44 +132,51 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                         cleanable={false}
                         searchBy={searchBy}
                         placeholder='Produto'
-                        value={Pedido.produto}
+                        value={(() => {
+                            const v = {...Pedido.produto.value}
+                            delete v.quantidade
+                            return v
+                        })()}
                         onSelect={value => {
                             if(!value) return
-                            let idx = Pedido.produtos.findIndex(p => Pedido.produto.nome)
-                            if(idx !== -1 && Pedido.produtos[idx].quantidade === 0) Pedido.produtos.splice(idx, 1)
+                            value.quantidade = 0
 
-                            let amount = 0
                             const has = Pedido.produtos.find(p => p.nome === value.nome)
-                            if(has) amount = has.quantidade
-                            handleChange('produto', value)
-                            handleChange('amount', amount)
+                            if(has) handleChange('produto', {label: has.nome, value: has})
+                            else handleChange('produto', {label: value.nome, value: value})
                         }}
                         data={Produtos.map(prod => ({
                             label: `${prod.cod} - ${prod.nome}`,
-                            value: prod
+                            value: {...prod}
                         }))}
-                        
                     />
-                    <NumberInput
-                        min={0}
-                        max={100}
-                        h='fit-content'
-                        value={Pedido.amount}
-                        onChange={value => {
-                            value = Math.floor(Number(value))
-                            const has = Pedido.produtos.find(x => x.nome === Pedido.produto.nome)
-                            if(has) has.quantidade = value
-                            else {
-                                const Prod = {...Produtos.find(x => x.nome === Pedido.produto.nome)}
-                                Prod.quantidade = value
-                                Pedido.produtos.push(Prod)
+                    <Input
+                        className={styles.InputProdutoQntd}
+                        placeholder='Quantidade'
+                        value={Pedido.produto.value.quantidade}
+                        onChange={e => {
+                            if(Pedido.produto.label === 'Selecione um produto') return
+
+                            let v = e.target.value.replace(/\D/gu, '')
+                            if(`${Pedido.produto.value.quantidade}`.length - v.length === -1) {
+                                const start = e.target.selectionStart
+                                v = v.slice(0, start) + v.slice(start+1, v.length)
+                                setTimeout(() => e.target.setSelectionRange(start, start), 1)
                             }
-                            console.log(Pedido.produtos)
-                            handleChange('amount', value)
+                            let value = Math.floor(Number(v))
+                            if(value < 0) value = 0
+                            if(value > 200) value = 200
+
+                            const last = Pedido.produto.value.quantidade
+                            Pedido.produto.value.quantidade = value
+                            const has = Pedido.produtos.find(x => x.nome === Pedido.produto.label)
+                            if(has) has.quantidade = value
+                            if(last === value) return;
+                            if(value === 0) Pedido.produtos.splice(Pedido.produtos.findIndex(x => x.nome === Pedido.produto.value.nome), 1)
+                            else if(last === 0) Pedido.produtos.push(Pedido.produto.value)
+                            handleChange()
                         }}
-                    >
-                        <NumberInputField className={styles.InputProdutoQntd} placeholder='Quantidade' />
-                    </NumberInput>
+                    />
                 </Flex>
                 <Button className={styles.LimparProdutos} onClick={limparProdutos} ref={ref}>
                     Limpar produtos
@@ -166,9 +185,17 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
 
             <Textarea
                 placeholder='Observações'
-                value={Pedido.observacoes}
+                defaultValue={buffer}
+                maxLength={300}
                 className={styles.InputObs}
-                onChange={e => handleChange('observacoes', e.target.value)}
+                onChange={e => {
+                    buffer = e.target.value
+                    if(task) clearTimeout(task)
+                    task = setTimeout(() => {
+                        task = null
+                        handleChange('observacoes', buffer)
+                    }, 80)
+                }}
             />
 
             <Flex className={styles.Troco}>

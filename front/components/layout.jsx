@@ -1,7 +1,8 @@
-import React from 'react';
-import Head from 'next/head';
-import Header from './header';
-import { ChakraProvider, ColorModeScript, extendTheme } from '@chakra-ui/react';
+import React from 'react'
+import Head from 'next/head'
+import Header from './header'
+import ConfirmationPopup from '~/components/confirmation-popup'
+import { ChakraProvider, ColorModeScript, extendTheme } from '@chakra-ui/react'
 
 export default function Layout({ title, children, hideMenus }) {
     const theme = extendTheme({
@@ -26,6 +27,7 @@ export default function Layout({ title, children, hideMenus }) {
             <Head>
                 <title>{title}</title>
             </Head>
+            <ConfirmationPopup />
             {hideMenus ? <></> : <Header />}
             {children}
         </ChakraProvider>

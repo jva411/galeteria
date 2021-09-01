@@ -17,6 +17,24 @@ div.Planilha {
             font-size: 1.6rem;
             font-weight: bold;
         }
+
+        .FilterOption {
+            background: none;
+            font-size: 1.6rem;
+            font-weight: bold;
+
+            & > span + span {
+                display: none;
+            }
+            &:hover, &:focus-within {
+                & > span + span {
+                    display: block;
+                }
+            }
+        }
+        .EstadoHeader {
+            width: 35rem;
+        }
     }
 
     .Body {
@@ -243,6 +261,50 @@ div.Planilha {
 
                 &:focus {
                     border: 0.1rem solid #000;
+                }
+            }
+        }
+
+        .RelatorioDiario {
+            margin: 2rem 1.5rem;
+            padding: 2rem 1.5rem;
+            max-width: 100vw;
+            min-height: 50rem;
+            row-gap: 3rem;
+            column-gap: 3rem;
+            grid-template-columns: repeat(auto-fit, 22rem);
+
+            .EntregadorResumo {
+                width: 22rem;
+                height: 30rem;
+                font-size: 1.8rem;
+
+                .EntregadorTitle {
+                    text-align: center;
+                }
+
+                .EntregadorResumoLinha {
+                    justify-content: space-between;
+
+                    & > * {
+                        margin-top: 0rem;
+                    }
+
+                    & > input {
+                        font-size: 1.8rem;
+                        width: 10rem;
+                        outline: none;
+                        border: none;
+                        transition: none;
+                        margin-right: -1.2rem;
+                        cursor: pointer;
+
+                        &:focus {
+                            outline: none;
+                            border: none;
+                            cursor: text;
+                        }
+                    }
                 }
             }
         }
