@@ -42,7 +42,7 @@ const Cupom = () => {
             <Text>{`(${pedido.index}º)`}</Text>
             <Text>Disk Frango Real</Text>
             <Text>98509-7224/3245-8939</Text>
-            <Text mt='1.4rem' textAlign='justify'>{`${pedido.rua.Rua}, ${pedido.numero} - ${pedido.complemento}`}</Text>
+            <Text className={styles.Endereco}>{`${pedido.rua.Rua}, ${pedido.numero} - ${pedido.complemento}`}</Text>
 
 
             <Text>{`-------------------------------`}</Text>
@@ -56,7 +56,7 @@ const Cupom = () => {
                 left={taxa ? 'Taxa' : ''}
                 right={Number(taxa).toLocaleString('pt-br',{style: 'currency', currency: 'BRL'}).slice(3)}
             />
-            <Text mt='0.8rem'>{`-------------------------------`}</Text>
+            <Text mt='8px'>{`-------------------------------`}</Text>
 
 
             <Line left='Total' right={Number(pedido.total).toLocaleString('pt-br',{style: 'currency', currency: 'BRL'})} />
@@ -75,7 +75,7 @@ const Cupom = () => {
 
             {pedido.observacoes
                 ? <>
-                    <Text mt='0.8rem'>{`-------------------------------`}</Text>
+                    <Text mt='8px'>{`-------------------------------`}</Text>
                     <Text textAlign='start'>Obs:</Text>
                     <Text className={styles.observacoes}>{pedido.observacoes}</Text>
                 </>
