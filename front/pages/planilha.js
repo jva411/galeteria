@@ -159,7 +159,7 @@ export default function Planilha(props) {
                             fontSize='2.8rem'
                             borderRadius='3rem'
                             onClick={async () => {
-                                await api.post('/pedido/1')
+                                await api.post('/pedido/30')
                                 // const Pedidos = await instance.get('/pedidos')
                                 // setPedidos(Pedidos.data)
                             }}

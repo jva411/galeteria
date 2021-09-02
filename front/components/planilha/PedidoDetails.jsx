@@ -51,7 +51,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
     
     if(task) {
         clearTimeout(task)
-        buffer = Pedidos.observacoes + buffer
+        buffer = Pedido.observacoes + buffer
         handleChange('observacoes', buffer)
     } else buffer = Pedido.observacoes
     let customClassName = styles.InputEndereco
