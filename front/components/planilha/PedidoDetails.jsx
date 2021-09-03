@@ -49,11 +49,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
     const ref = React.useRef()
 
     
-    if(task) {
-        clearTimeout(task)
-        buffer = Pedido.observacoes + buffer
-        handleChange('observacoes', buffer)
-    } else buffer = Pedido.observacoes
+    buffer = Pedido.observacoes
     let customClassName = styles.InputEndereco
     if(Pedido.rua && Pedido.rua.Rua) customClassName = styles.InputValuedEndereco
 
