@@ -165,6 +165,7 @@ app.put('/pedido/:index', async (req, res) => {
     res.json({message: 'Ok', lastUpdate: now})
 
     Object.assign(Pedido, body)
+    Pedido.lastUpdate = now
     if(lastEstado !== Pedido.estado) {
         Pedido.atualizacoes.push({
             estado: Pedido.estado,
