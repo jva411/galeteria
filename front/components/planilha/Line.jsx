@@ -23,14 +23,13 @@ const states = {
 }
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-let ignore = false
 
 
 const Line = ({ pedido, index, planilha }) => {
 
     // console.log(pedido)
     // console.log('a')
-    const { entregadores, Ruas, Produtos } = useGlobalContext()
+    const { entregadores, Ruas, id } = useGlobalContext()
     const [Props, setProps] = React.useState({
         Pedido: pedido,
         lastUpdate: pedido.lastUpdate,
@@ -45,13 +44,16 @@ const Line = ({ pedido, index, planilha }) => {
     }, [pedido])
 
     React.useEffect(async () => {
-        let update = (await instance.get(`/pedido/${index/2}/update`)).data.update
+        let res = (await instance.get(`/pedido/${index/2}/update`)).data
+        let {update, id: ID} = res
         while(Props.lastUpdate === update){
             await sleep(1000)
-            update = (await instance.get(`/pedido/${index/2}/update`)).data.update
+            res = (await instance.get(`/pedido/${index/2}/update`)).data
+            update = res.update
+            ID = res.id
         }
-        if(ignore){
-            ignore = false
+        if(ID === id) {
+            setProps({...Props, lastUpdate: update})
             return
         }
 
@@ -70,22 +72,25 @@ const Line = ({ pedido, index, planilha }) => {
     async function handleChange(key, value) {
         const p = {...Props.Pedido}
 
-        if(typeof key !== 'undefined') p[key] = value
+        if(typeof key !== 'undefined') {
+            p[key] = value
+            Props.Pedido[key] = value
+        }
         p.total = p.taxaEntrega + p.taxaCartao
-
+        
         const prods = p.produtos.filter(x => x.quantidade > 0)
         for(let P of prods) p.total += P.preco * P.quantidade
+        Props.Pedido.total = p.total
 
-        Props.Pedido = {...p}
 
         p.produtos = prods
         p.rua = Props.Pedido.rua.Rua
         delete p.produto
         delete p.amount
         delete p.index
+        p.front_id = id
 
         const lu = await instance.put(`/pedido/${index/2}`, p)
-        ignore = true
         Props.lastUpdate = lu.data.lastUpdate
         // console.log(Props.Pedido.observacoes)
         setProps({...Props})

@@ -7,7 +7,8 @@
     "luxon": "^2.0.1",
     "mongodb": "^4.1.0",
     "sulla": "^2.4.0",
-    "sulla-hotfix": "^1.8.42"
+    "sulla-hotfix": "^1.8.42",
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "dev": "node index.js"

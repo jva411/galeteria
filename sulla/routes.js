@@ -3,6 +3,7 @@ import db from './db.js'
 import lodash from 'lodash'
 import express from 'express'
 import { DateTime } from 'luxon'
+import { v4 as uuid } from 'uuid'
 import cardapio from './config/cardapio.js'
 // import enderecos from './config/enderecos.js'
 import entregadores from './config/entregadores.js'
@@ -35,7 +36,7 @@ const { pedido, produto, endereco, entregador } = (await db())
  * @property {string} telefone
  * @property {number} iniciado
  * @property {object[]} atualizacoes
- * @property {number} lastUpdate
+ * @property {{timestamp: number, front: string}} lastUpdate
  */
 
 /**
@@ -43,10 +44,10 @@ const { pedido, produto, endereco, entregador } = (await db())
  */
 let pedidos
 
+const fronts = {}
+
 const start = DateTime.fromMillis(Date.now()).startOf('day')
 const end = DateTime.fromMillis(Date.now()).endOf('day')
-// console.log(start.toMillis())
-// console.log(end.toMillis())
 
 pedidos = await pedido.find({iniciado: {$gte: start.toMillis(), $lt: end.toMillis()}}).toArray()
 let enderecos = {
@@ -84,6 +85,14 @@ let cupom = {}
 
 
 
+app.post('/uuid', (req, res) => {
+    let id = ''
+    do {
+        id = uuid()
+    } while (fronts[id])
+    fronts[id] = id
+    res.json(id)
+})
 app.get('/cardapio', (req, res) => {
     res.json(cardapio)
 })
@@ -109,8 +118,9 @@ app.get('/pedido/:index', (req, res) => {
 })
 app.get('/pedido/:index/update', (req, res) => {
     const index = Number(req.params.index)
+    const {timestamp, front} = pedidos[index].lastUpdate
 
-    res.json({update: pedidos[index].lastUpdate})
+    res.json({update: timestamp, id: front})
 })
 app.get('/impressao', (req, res) => {
     let Pedido = cupom
@@ -163,9 +173,14 @@ app.put('/pedido/:index', async (req, res) => {
     const now = Date.now()
     Pedido.lastUpdate = now
     res.json({message: 'Ok', lastUpdate: now})
-
+    
+    const id = body.front_id
+    delete body.front_id
     Object.assign(Pedido, body)
-    Pedido.lastUpdate = now
+    Pedido.lastUpdate = {
+        timestamp: now,
+        front: id
+    }
     if(lastEstado !== Pedido.estado) {
         Pedido.atualizacoes.push({
             estado: Pedido.estado,
@@ -173,7 +188,7 @@ app.put('/pedido/:index', async (req, res) => {
         })
     }
 
-    if(!Pedido._id){
+    if(!Pedido._id) {
         if(Pedido.rua !== '') {
             const result = await pedido.insertOne(Pedido)
             Pedido._id = result.insertedId

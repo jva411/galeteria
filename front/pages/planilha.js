@@ -25,7 +25,7 @@ const states = {
 
 export default function Planilha(props) {
 
-    const {pedidos, Ruas, Produtos, entregadores, setPedidos, setRuas, setProdutos, setEntregadores} = useGlobalContext()
+    const {pedidos, Ruas, Produtos, entregadores, setPedidos, setRuas, setProdutos, setEntregadores, setId} = useGlobalContext()
     const [Props, setProps] = React.useState({
         lastUpdate: props.lastUpdate,
         entregadorFiltro: '',
@@ -33,13 +33,14 @@ export default function Planilha(props) {
     })
 
     React.useState(() => {
+        setId(props.id)
         setRuas(props.ruas)
         setPedidos(props.pedidos)
         setProdutos(props.produtos)
         setEntregadores(props.entregadores)
         Props.pedidosFiltrados = props.pedidos
         setProps({...Props})
-    }, [props.pedidos, props.ruas, props.entregadores, props.produtos])
+    }, [props.pedidos, props.ruas, props.entregadores, props.produtos, props.id])
 
     React.useEffect(async () => {
         let last = (await api.get('/pedidos/update')).data.lastUpdate
@@ -184,6 +185,7 @@ export const getServerSideProps = async (context) => {
     props.title = 'Planilha'
 
     try {
+        const id = await api.post('/uuid')
         const ruas = await api.get('/enderecos')
         const pedidos = await api.get('/pedidos')
         const produtos = await api.get('/cardapio')
@@ -202,6 +204,7 @@ export const getServerSideProps = async (context) => {
             return acc
         }, [])
 
+        props.id = id.data
         props.ruas = ruas.data
         props.pedidos = Pedidos
         props.produtos = produtos.data

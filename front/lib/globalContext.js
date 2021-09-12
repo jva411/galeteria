@@ -8,11 +8,14 @@ export default function GlobalContextProvider({ children }){
     const [Ruas, setRuas] = React.useState([])
     const [Produtos, setProdutos] = React.useState([])
     const [entregadores, setEntregadores] = React.useState([])
+    const [id, setId] = React.useState('')
 
     return(
         <GlobalContext.Provider
             value={{
+                id,
                 Ruas,
+                setId,
                 setRuas,
                 pedidos,
                 Produtos,
@@ -31,7 +34,9 @@ export function useGlobalContext(){
     const context = React.useContext(GlobalContext)
 
     const {
+        id,
         Ruas,
+        setId,
         setRuas,
         pedidos,
         Produtos,
@@ -42,7 +47,9 @@ export function useGlobalContext(){
     } = context
 
     return ({
+        id,
         Ruas,
+        setId,
         setRuas,
         pedidos,
         Produtos,
