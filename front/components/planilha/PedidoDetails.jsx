@@ -31,7 +31,6 @@ function sanitize(str) {
 }
 
 
-let buffer = ''
 let task = null
 
 
@@ -46,23 +45,44 @@ let delay = Date.now()
 const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
 
     const { Ruas, Produtos } = useGlobalContext()
+    const [state, setState] = React.useState({
+        observacoes: Pedido.observacoes,
+        complemento: Pedido.complemento
+    })
     const ref = React.useRef()
 
-    
-    buffer = Pedido.observacoes
+
     let customClassName = styles.InputEndereco
     if(Pedido.rua && Pedido.rua.Rua) customClassName = styles.InputValuedEndereco
+    const keys = Object.keys(state)
 
 
-    function limparProdutos(){
+    function handleLocalChange(key, value) {
+        if (keys.includes(key)) {
+            if (task) clearTimeout(task)
+            state[key] = value
+            setState({...state})
+            task = setTimeout(() => {
+                handleChange(key, value)
+            }, 400)
+        } else handleChange(key, value)
+    }
+
+    function limparProdutos() {
         openPopup({
             message: 'Você deseja realmente limpar a lista de produtos deste pedido?',
             action: 'Limpar',
-            confirmation: () => handleChange('produtos', []),
+            confirmation: () => handleLocalChange('produtos', []),
             ref: ref
         })
     }
-    
+
+    React.useEffect(() => {
+        for (let key of keys) {
+            state[key] = Pedido[key]
+        }
+        setState({...state})
+    }, keys.map(key => Pedido[key]))
 
 
     return (
@@ -80,8 +100,8 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                             let n = Pedido.numero
                             if(n < value.min) n = value.min
                             else if(n > value.max) n = value.max
-                            handleChange('rua', value)
-                            if(n !== Pedido.numero) handleChange('numero', n)
+                            handleLocalChange('rua', value)
+                            if(n !== Pedido.numero) handleLocalChange('numero', n)
                         }}
                         data={Ruas.ruas.map(rua => ({
                             label: rua.Rua,
@@ -99,7 +119,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                                 let n = Math.floor(Number(e.target.value))
                                 if(n > Pedido.rua.max) n = Pedido.rua.max
                                 else if (n < Pedido.rua.min) n = Pedido.rua.min
-                                handleChange('numero', n)
+                                handleLocalChange('numero', n)
                             }}
                         />
                     </NumberInput>
@@ -108,8 +128,8 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                 <Input
                     className={styles.Complemento}
                     placeholder='Complemento'
-                    value={Pedido.complemento}
-                    onChange={e => handleChange('complemento', e.target.value)}
+                    value={state.complemento}
+                    onChange={e => handleLocalChange('complemento', e.target.value)}
                 />
             </Box>
 
@@ -138,8 +158,8 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                             value.quantidade = 0
 
                             const has = Pedido.produtos.find(p => p.nome === value.nome)
-                            if(has) handleChange('produto', {label: has.nome, value: has})
-                            else handleChange('produto', {label: value.nome, value: value})
+                            if(has) handleLocalChange('produto', {label: has.nome, value: has})
+                            else handleLocalChange('produto', {label: value.nome, value: value})
                         }}
                         data={Produtos.map(prod => ({
                             label: `${prod.cod} - ${prod.nome}`,
@@ -170,7 +190,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                             if(last === value) return;
                             if(value === 0) Pedido.produtos.splice(Pedido.produtos.findIndex(x => x.nome === Pedido.produto.value.nome), 1)
                             else if(last === 0) Pedido.produtos.push(Pedido.produto.value)
-                            handleChange()
+                            handleLocalChange()
                         }}
                     />
                 </Flex>
@@ -181,17 +201,10 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
 
             <Textarea
                 placeholder='Observações'
-                defaultValue={buffer}
                 maxLength={300}
                 className={styles.InputObs}
-                onChange={e => {
-                    buffer = e.target.value
-                    if(task) clearTimeout(task)
-                    task = setTimeout(() => {
-                        task = null
-                        handleChange('observacoes', buffer)
-                    }, 80)
-                }}
+                value={state.observacoes}
+                onChange={e => handleLocalChange('observacoes', e.target.value)}
             />
 
             <Flex className={styles.Troco}>
@@ -201,7 +214,7 @@ const Expansion = ({ Pedido, handleChange, index, imprimir }) => {
                         id={`troco-${index}`}
                         className={styles.Numero}
                         placeholder='Troco'
-                        onChange={e => handleChange('troco', Number(e.target.value))}
+                        onChange={e => handleLocalChange('troco', Number(e.target.value))}
                     />
                 </NumberInput>
             </Flex>
