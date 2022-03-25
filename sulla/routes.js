@@ -57,9 +57,9 @@ let enderecos = {
 let lastUpdate = Date.now()
 // console.log(pedidos)
 
-if(pedidos.length < 30) {
+if(pedidos.length < 200) {
     let i = pedidos.length
-    while(i<30) {
+    while(i<200) {
         pedidos.push({
             estado: 'naoSaiu',
             entregador: entregadores[0],

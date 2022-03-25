@@ -136,10 +136,10 @@ const Line = ({ pedido, index, planilha }) => {
     }
 
     async function imprimir() {
-        const pedido2 = {...Props.Pedido}
-        pedido2.index = index/2 + 1
-        await instance.put('/impressao', {Pedido: pedido2})
-        window.open('/cupom', '_blank')
+        // const pedido2 = {...Props.Pedido}
+        // pedido2.index = index/2 + 1
+        // await instance.put('/impressao', {Pedido: pedido2})
+        window.open(`/cupom/${index/2 + 1}`, '_blank')
     }
 
     /**

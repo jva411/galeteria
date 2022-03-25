@@ -14,23 +14,23 @@ const Line = ({left, right}) => {
 }
 
 
-const Cupom = () => {
+const Cupom = (props) => {
     
     // Largura de 31 letras
 
-    const [pedido, setPedido] = React.useState()
+    const [pedido, setPedido] = React.useState(props.pedido)
 
-    React.useEffect(async () => {
-        const Pedido = await instance.get('/impressao')
-        setPedido(Pedido.data.Pedido)
-    }, [true])
+    // React.useEffect(async () => {
+    //     const Pedido = await instance.get('/impressao')
+    //     setPedido(Pedido.data.Pedido)
+    // }, [true])
 
     React.useEffect(() => {
         if(window.opener && pedido) {
             window.print()
             window.close()
         }
-    }, [pedido])
+    }, [true])
 
 
     if(!pedido || lodash.isEmpty(pedido)) return <></>
