@@ -1,0 +1,8 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "require-await": "error",
+    "no-return-await":"error",
+    "no-extra-boolean-cast": "error"
+  }
+}
