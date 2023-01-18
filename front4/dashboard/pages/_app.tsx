@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <link rel="icon" href="/favicon.ico" />
     </Head>
     <Header />
-    <div className='page'>
+    <div className='min-w-screen min-h-screen pt-[5rem]'>
       <Component {...pageProps} />
     </div>
   </>

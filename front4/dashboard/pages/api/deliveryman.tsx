@@ -8,7 +8,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse 
             const filter: DeliverymanFilter = {}
             if (typeof req.query.active === 'string') filter.active = req.query.active === 'true'
             const data = await getDeliverymans(filter)
-            console.log(data)
             res.json(data)
             break
         }

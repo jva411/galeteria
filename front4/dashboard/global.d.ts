@@ -26,14 +26,29 @@ interface ProductOrder {
     amount: number
 }
 
+interface Address {
+    address: string
+    number: number
+    note: string
+}
+
 interface Order {
     _id: string
-    address: string
+    address: Address
     products: ProductOrder[]
     total: number
+    tax: number
+    note: string
     deliveryman_id: string
     payment_method: PaymentMethod
     payment_state: PaymentState
     order_state: OrderState
+    toDelivery: boolean
     created_at: number
+}
+
+
+
+interface StateListeners {
+    [key: string]: (event: string, data?: any) => void
 }
