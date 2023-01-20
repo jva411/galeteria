@@ -1,7 +1,7 @@
 import Modal from "./modal"
 import api from "utils/axios"
 import { useState } from "react"
-import InputText from "components/input/text"
+import Input from "components/input/input"
 import { state } from 'utils/providers/deliveryman'
 
 
@@ -49,7 +49,7 @@ export default function RegisterDeliverymanModal() {
     controls.open = open
 
     return <Modal isOpen={isOpen} onClose={close}>
-        <InputText label='Nome' id='name' value={props?.name} onChange={e => updateName(e.target.value)} />
+        <Input label='Nome' id='name' value={props?.name} onChange={e => updateName((e.target as HTMLInputElement).value)} />
         <button
             type='button'
             onClick={registerDeliveryman}

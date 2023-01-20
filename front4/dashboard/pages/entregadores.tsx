@@ -1,11 +1,9 @@
 import api from 'utils/axios'
 import AddButton from 'components/button/add'
+import useForceUpdate from 'utils/force-update'
 import { state } from 'utils/providers/deliveryman'
 import DeliverymanCard from 'components/card/deliveryman'
-import { controls } from 'components/modal/register-deliveryman'
-import RegisterDeliverymanModal from 'components/modal/register-deliveryman'
-import { useEffect } from 'react'
-import useForceUpdate from 'utils/force-update'
+import RegisterDeliverymanModal, { controls } from 'components/modal/register-deliveryman'
 
 
 interface EntregadoresProps {
@@ -19,7 +17,7 @@ export default function Entregadores({ deliverymans }: EntregadoresProps) {
     state.listeners['Entregadores'] = () => forceUpdate()
 
     return <>
-        <div className='flex items-center p-[2rem] space-x-[2rem] [&>*]:mb-[2rem]'>
+        <div className='flex flex-wrap items-center p-[2rem] [&>*]:mb-[2rem] [&>*]:mr-[2rem]'>
             {state.data.map((deliveryman, idx) => <DeliverymanCard deliveryman={deliveryman} key={idx} />)}
             <AddButton onClick={() => controls.open({name: '', onClose: () => {}})} />
         </div>
@@ -29,8 +27,9 @@ export default function Entregadores({ deliverymans }: EntregadoresProps) {
 
 
 export async function getServerSideProps() {
-    const props: any = {
-        title: 'Entregadores'
+    const props = {
+        title: 'Entregadores',
+        deliverymans: [] as Deliveryman[]
     }
 
     const data = await (await api.get('deliveryman')).data

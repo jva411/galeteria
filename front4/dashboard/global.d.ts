@@ -13,9 +13,7 @@ interface Deliveryman {
 
 interface Product {
     _id: string
-    code: number
     name: string
-    description: string
     price: number
     created_at: number
 }

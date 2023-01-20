@@ -7,9 +7,5 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [
-    function ({ addVariant }) {
-      addVariant('div', 'div &')
-    }
-  ],
+  plugins: [],
 }

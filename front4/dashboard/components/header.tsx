@@ -10,6 +10,7 @@ function Header() {
             <Link href='/'>Início</Link>
             <Link href='/planilha'>Planilha</Link>
             <Link href='/entregadores'>Entregadores</Link>
+            <Link href='/produtos'>Produtos</Link>
         </nav>
     </header>
 }
