@@ -2,6 +2,9 @@ type PaymentMethod = 'money' | 'card' | 'pix' | 'fiado'
 type PaymentState = 'pendent' | 'complete' | 'canceled'
 type OrderState = 'new' | 'in_progress' | 'complete' | 'canceled'
 
+type Nullables<T> = {
+    [K in keyof T]?: T[K]
+}
 
 interface Deliveryman {
     _id: string
@@ -19,7 +22,7 @@ interface Product {
 }
 
 interface ProductOrder {
-    _id: string
+    name: string
     price: number
     amount: number
 }
@@ -32,6 +35,7 @@ interface Address {
 
 interface Order {
     _id: string
+    count: number
     address: Address
     products: ProductOrder[]
     total: number

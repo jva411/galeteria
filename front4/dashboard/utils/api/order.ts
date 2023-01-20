@@ -1,10 +1,9 @@
+import { Types } from 'mongoose'
 import { getCollection } from 'utils/api/db'
 
 export interface OrderData extends Omit<Order, '_id'> {}
-export interface OrderFilter {
-    _id: string
-    deliveryman_id: string
-    payment_method: PaymentMethod
+export interface OrderFilter extends Nullables<OrderData> {
+    created_at?: number | any
 }
 
 export async function addOrder(data: OrderData) {
@@ -14,11 +13,27 @@ export async function addOrder(data: OrderData) {
 
 export async function updateOrder(_id: string, data: OrderFilter) {
     const collection = await getCollection('order')
-    return collection.updateOne({_id}, data)
+    return collection.updateOne({_id: new Types.ObjectId(_id)}, {
+        '$set': data
+    })
 }
 
-export async function getOrders(filter: OrderFilter) {
+export async function getOrders(filter: OrderFilter, day?: Date | number) {
     const collection = await getCollection('order')
+    const query = {...filter}
+    delete query['created_at']
+    if (day instanceof Date) {
+        day.setUTCHours(0, 0, 0, 0)
+        query['created_at'] = {
+            '$get': day.getTime(),
+            '$lt': day.getTime() + 86400000
+        }
+    } else if (typeof day === 'number') {
+        query['created_at'] = {
+            '$get': day,
+            '$lt': day + 86400000
+        }
+    }
     return collection.find(filter).toArray()
 }
 
