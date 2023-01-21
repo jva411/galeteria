@@ -37,6 +37,7 @@ const today: Date = new Date()
 const orders: ControlledOrder[] = []
 getOrders({}, today).then(data => {
     orders.push(...data.map(order => Object.assign(order, {saved: true})) as unknown as ControlledOrder[])
+    for (let i=0; i<orders.length; i++) orders[i].count = i
     for (let i=orders.length; i<100; i++) orders.push(getEmptyOrder(i))
 })
 createRoom('orders')

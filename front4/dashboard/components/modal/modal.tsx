@@ -12,7 +12,7 @@ interface ModalProps {
 
 
 export default function Modal({ isOpen, onClose, children, containerProps }: ModalProps) {
-    const containerStlyes = `absolute top-0 w-full h-[calc(100%-5rem)] mt-[5rem] flex justify-center items-center`
+    const containerStlyes = `absolute top-0 w-full h-[calc(100%-5rem)] mt-[5rem] flex justify-center items-center z-10`
     const overlayStyles = `bg-[#85858550] w-full h-full absolute`
 
     if (!isOpen) return <></>

@@ -5,10 +5,10 @@ interface ProductsState {
 }
 
 
-export const state: ProductsState = {
+export const productState: ProductsState = {
     data: [],
     notify: () => {},
     listeners: {}
 }
 
-state.notify = (event, data) => Object.values(state.listeners).forEach(handle => handle(event, data))
+productState.notify = (event, data) => Object.values(productState.listeners).forEach(handle => handle(event, data))

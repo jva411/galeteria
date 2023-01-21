@@ -2,7 +2,7 @@ import Modal from "./modal"
 import api from "utils/axios"
 import { useState } from "react"
 import Input from "components/input/input"
-import { state } from 'utils/providers/deliveryman'
+import { deliverymanState } from 'utils/providers/deliveryman'
 
 
 interface RegisterDeliverymanProps {
@@ -40,8 +40,8 @@ export default function RegisterDeliverymanModal() {
                 'name': props!.name,
                 'description': ''
             }), {headers:{'Content-Type': 'application/json'}})
-            state.data = JSON.parse(await (await api.get('/deliveryman')).data)
-            state.notify('newDeliveryman')
+            deliverymanState.data = JSON.parse(await (await api.get('/deliveryman')).data)
+            deliverymanState.notify('newDeliveryman')
             close()
         } catch(ex) { console.error(ex) }
     }

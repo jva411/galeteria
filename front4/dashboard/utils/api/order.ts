@@ -34,7 +34,7 @@ export async function getOrders(filter: OrderFilter, day?: Date | number) {
             '$lt': day + 86400000
         }
     }
-    return collection.find(filter).toArray()
+    return collection.find(filter, {sort: {count: 'asc'}}).toArray()
 }
 
 export async function removeOrder(_id: string) {
