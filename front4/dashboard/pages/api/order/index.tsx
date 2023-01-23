@@ -4,7 +4,7 @@ import { addOrder, getOrders, OrderData, OrderFilter } from 'utils/api/order'
 import { addHandler, createRoom, FlushableResponse, sendEvent } from 'utils/api/sse'
 
 
-interface ControlledOrder extends Order {
+export interface ControlledOrder extends Order {
     saved: boolean
     locked: boolean
 }
@@ -34,7 +34,7 @@ function getEmptyOrder(index: number): ControlledOrder {
 }
 
 const today: Date = new Date()
-const orders: ControlledOrder[] = []
+export const orders: ControlledOrder[] = []
 getOrders({}, today).then(data => {
     orders.push(...data.map(order => Object.assign(order, {saved: true})) as unknown as ControlledOrder[])
     for (let i=0; i<orders.length; i++) orders[i].count = i
@@ -47,12 +47,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     switch (req.method) {
         case 'GET': {
             const { day, ...query } = req.query
-            if (day == null) {
-                res.json(orders)
-                break
-            }
             if ('sse' in query) {
                 addHandler('orders', res as FlushableResponse)
+                break
+            }
+            if (day == null) {
+                res.json(orders)
                 break
             }
 

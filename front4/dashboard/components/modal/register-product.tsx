@@ -3,7 +3,7 @@ import api from 'utils/axios'
 import { useState } from 'react'
 import Input from 'components/input/input'
 import PriceInput from 'components/input/price'
-import { productState } from 'utils/providers/products'
+import { productsState } from 'utils/providers/product'
 
 
 interface RegisterProductProps {
@@ -42,8 +42,8 @@ export default function RegisterProductModal() {
                 name: props!.name,
                 price: props!.price
             }), {headers:{'Content-Type': 'application/json'}})
-            productState.data = JSON.parse(await (await api.get('/product')).data)
-            productState.notify('newProduct')
+            productsState.data = JSON.parse(await (await api.get('/product')).data)
+            productsState.notify('newProduct')
             close()
         } catch(ex) { console.error(ex) }
     }
@@ -51,7 +51,7 @@ export default function RegisterProductModal() {
     controls.open = open
 
     return <Modal isOpen={isOpen} onClose={close}>
-        <Input label='Nome' id='name' value={props?.name} onChange={e => update('name', (e.target as HTMLInputElement).value)} />
+        <Input label='Nome' id='name' autoFocus value={props?.name} onChange={e => update('name', (e.target as HTMLInputElement).value)} />
         <PriceInput label='Preço' id='price' onChange={value => update('price', value)} />
         <button
             type='button'

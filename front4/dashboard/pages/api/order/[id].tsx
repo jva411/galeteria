@@ -1,9 +1,10 @@
+import { orders } from '.'
+import { sendEvent } from 'utils/api/sse'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { OrderData, OrderFilter, updateOrder } from 'utils/api/order'
-import { sendEvent } from 'utils/api/sse'
 
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
         case 'PUT': {
             const data = req.body as OrderFilter & {_id?: string}
@@ -11,7 +12,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             const updateData = {...data}
             delete updateData['_id']
             delete updateData['created_at']
-            updateOrder(id!, updateData)
+            await updateOrder(id!, updateData)
+            if (data.count! < orders.length && orders[data.count!]._id === id) orders[data.count!] = {...orders[data.count!], ...data}
             const handler = req.headers['handler'] as string
             sendEvent(handler, 'orders', 'update-order', JSON.stringify(data))
             res.statusCode = 201

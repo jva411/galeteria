@@ -18,7 +18,7 @@ interface Room {
 const rooms: {[key: string]: Room} = {}
 
 async function sendSSEEvent(res: FlushableResponse, event: string, data: string) {
-    res.write(`\nevent: ${event}\n\ddata: ${data}\n\n`)
+    res.write(`\nevent: ${event}\ndata: ${data}\n\n`)
     res.flush()
 }
 
@@ -36,6 +36,7 @@ export function addHandler(room: string, res: FlushableResponse) {
     }
 
     res.setHeader('Content-Type', 'text/event-stream')
+    res.flushHeaders()
     sendSSEEvent(res, 'setup', id)
 }
 

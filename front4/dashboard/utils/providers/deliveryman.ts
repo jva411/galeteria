@@ -1,14 +1,14 @@
-interface DeliverymanState {
+interface DeliverymansState {
     data: Deliveryman[]
     notify: (event: string, data?: any) => void
     listeners: StateListeners
 }
 
 
-export const deliverymanState: DeliverymanState = {
+export const deliverymansState: DeliverymansState = {
     data: [],
     notify: () => {},
     listeners: {}
 }
 
-deliverymanState.notify = (event, data) => Object.values(deliverymanState.listeners).forEach(handle => handle(event, data))
+deliverymansState.notify = (event, data) => Object.values(deliverymansState.listeners).forEach(handle => handle(event, data))

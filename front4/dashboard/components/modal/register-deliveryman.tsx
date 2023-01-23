@@ -2,7 +2,7 @@ import Modal from "./modal"
 import api from "utils/axios"
 import { useState } from "react"
 import Input from "components/input/input"
-import { deliverymanState } from 'utils/providers/deliveryman'
+import { deliverymansState } from 'utils/providers/deliveryman'
 
 
 interface RegisterDeliverymanProps {
@@ -40,8 +40,8 @@ export default function RegisterDeliverymanModal() {
                 'name': props!.name,
                 'description': ''
             }), {headers:{'Content-Type': 'application/json'}})
-            deliverymanState.data = JSON.parse(await (await api.get('/deliveryman')).data)
-            deliverymanState.notify('newDeliveryman')
+            deliverymansState.data = JSON.parse(await (await api.get('/deliveryman')).data)
+            deliverymansState.notify('newDeliveryman')
             close()
         } catch(ex) { console.error(ex) }
     }
@@ -49,7 +49,7 @@ export default function RegisterDeliverymanModal() {
     controls.open = open
 
     return <Modal isOpen={isOpen} onClose={close}>
-        <Input label='Nome' id='name' value={props?.name} onChange={e => updateName((e.target as HTMLInputElement).value)} />
+        <Input label='Nome' id='name' autoFocus value={props?.name} onChange={e => updateName((e.target as HTMLInputElement).value)} />
         <button
             type='button'
             onClick={registerDeliveryman}

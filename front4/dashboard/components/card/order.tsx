@@ -1,10 +1,17 @@
-import PriceInput from 'components/input/price'
-import { deliverymanState } from 'utils/providers/deliveryman'
 import Card from './card'
+import api from 'utils/axios'
+import { useState } from 'react'
+import { MdEdit } from 'react-icons/md'
+import { OrderFilter } from 'utils/api/order'
+import PriceInput from 'components/input/price'
+import { FcLock, FcUnlock } from 'react-icons/fc'
+import { deliverymansState } from 'utils/providers/deliveryman'
+import { OrderState as ProviderOrderState, updateOrder } from 'utils/providers/order'
+import { controls } from 'components/modal/register-order'
 
 
 interface OrderCardProps {
-    order: Order
+    os: ProviderOrderState
 }
 interface ProductListProps {
     products: ProductOrder[]
@@ -25,13 +32,74 @@ function ProductList({ products }: ProductListProps) {
         </li>)}
     </ul>
 }
+let timeoutId: NodeJS.Timeout
+let waitToUpdate = false
+function handleUpdate(cb: () => void) {
+    if (timeoutId) clearTimeout(timeoutId);
 
-export default function OrderCard({ order }: OrderCardProps) {
-    const cardStyles = `flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem] ${cardColors[order.order_state]}`
+    timeoutId = setTimeout(() => {
+        cb()
+        waitToUpdate = true
+        setTimeout(() => waitToUpdate = false, 1000)
+    }, 500)
+}
+
+export default function OrderCard({ os }: OrderCardProps) {
+    const { order: data, listeners } = os
+    const [order, setOrder] = useState(data)
+    listeners[`order-card-${order.count}`] = () => setOrder({...os.order})
+
+    const cardStyles = `relative flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem] ${cardColors[order.order_state]}`
+    const lockStyles = `absolute top-[0.5rem] right-[2.5rem] cursor-pointer`
+    const editStyles = `absolute top-[0.5rem] right-[0.5rem] ${order.locked? 'cursor-not-allowed': 'cursor-pointer'}`
     const address = `${order.address.address || 'rua'}, ${order.address.number}` + (order.address.note? ` - ${order.address.note}`: '')
+    const changes: OrderFilter = {}
+    const canUpdate = order._id !== ''
+
+    async function sendUpdateOrder() {
+        await api.put(
+            `/order/${order._id}`,
+            JSON.stringify(changes),
+            {headers:{'Content-Type': 'application/json'}}
+        )
+    }
+
+    function handleSelectOrderState(state: OrderState) {
+        if (!canUpdate) return
+        changes['order_state'] = state
+        handleUpdate(async () => {
+            try {
+                await sendUpdateOrder()
+                updateOrder(Object.assign(order, changes))
+            } catch (Exception) {}
+        })
+    }
+
+    function lock() {
+        api.patch(`/order?lock=true&count=${order.count}`)
+        order.locked = true
+        updateOrder(order)
+    }
+    function unlock() {
+        api.patch(`/order?lock=false&count=${order.count}`)
+        order.locked = false
+        updateOrder(order)
+    }
+
+    function openEdit() {
+        if (!order.locked) {
+            controls.open({order, onClose: unlock})
+            lock()
+        }
+    }
 
     return <Card className={cardStyles}>
         <span className=''>Nº {order.count+1}</span>
+        <MdEdit className={editStyles} title='Editar' onClick={() => openEdit()} />
+        {order.locked
+            ? <FcLock className={lockStyles} title='Desbloquear' onClick={unlock} />
+            : <FcUnlock className={lockStyles} title='Bloquear' onClick={lock} />
+        }
         <div className='flex w-full text-[1.4rem] border-t-[0.1rem] border-black'>
             <span className='w-[12rem] capitalize'>{address}</span>
             <ProductList products={order.products} />
@@ -40,7 +108,7 @@ export default function OrderCard({ order }: OrderCardProps) {
             <div className='flex flex-col space-y-[1rem]'>
                 <select>
                     <option value=''>--Entregador--</option>
-                    {deliverymanState.data.map(d => <option value={d._id}>{d.name}</option>)}
+                    {deliverymansState.data.map((d, idx) => <option key={idx} value={d._id}>{d.name}</option>)}
                 </select>
                 <select>
                     <option value='money'>Dinheiro</option>
@@ -50,11 +118,11 @@ export default function OrderCard({ order }: OrderCardProps) {
                 </select>
             </div>
             <div className='flex flex-col space-y-[1rem] ml-[1rem]'>
-                <select>
-                    <option value="new">Novo</option>
-                    <option value="in_progress">Em Rota</option>
-                    <option value="complete">Concluído</option>
-                    <option value="canceled">Cancelado</option>
+                <select onChange={e => handleSelectOrderState(e.currentTarget.value as OrderState)}>
+                    <option value='new'>Novo</option>
+                    <option value='in_progress'>Em Rota</option>
+                    <option value='complete'>Concluído</option>
+                    <option value='canceled'>Cancelado</option>
                 </select>
                 <select>
                     <option value='money'>Dinheiro</option>

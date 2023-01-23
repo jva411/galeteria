@@ -3,7 +3,7 @@ import api from 'utils/axios'
 import { useState } from 'react'
 import Input from 'components/input/input'
 import PriceInput from 'components/input/price'
-import { productState } from 'utils/providers/products'
+import { productsState } from 'utils/providers/product'
 
 
 interface UpdateProductProps {
@@ -41,8 +41,8 @@ export default function UpdateProductModal() {
                 name: props!.product.name,
                 price: props!.product.price
             }), {headers:{'Content-Type': 'application/json'}})
-            productState.data = JSON.parse(await (await api.get('/product')).data)
-            productState.notify('newProduct')
+            productsState.data = JSON.parse(await (await api.get('/product')).data)
+            productsState.notify('newProduct')
             close()
         } catch(ex) { console.error(ex) }
     }

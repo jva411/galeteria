@@ -1,62 +1,56 @@
-import api from 'utils/axios'
 import { useEffect, useState } from 'react'
 import OrderCard from 'components/card/order'
-import { productState } from 'utils/providers/products'
-import { deliverymanState } from 'utils/providers/deliveryman'
+import { ControlledOrder } from './api/order'
+import api, { dynamicOptions } from 'utils/axios'
+import { productsState } from 'utils/providers/product'
+import { deliverymansState } from 'utils/providers/deliveryman'
+import { addOrders, ordersState, updateOrder } from 'utils/providers/order'
+import { RegisterOrder } from 'components/modal/register-order'
 
 
 interface PlanilhaProps {
     deliverymans: Deliveryman[]
     products: Product[]
-    orders: Order[]
+    orders: ControlledOrder[]
 }
 
-const mockOrder: Order = {
-    _id: '',
-    address: {
-        address: 'primeiro de maio',
-        number: 2060,
-        note: 'Altos'
-    },
-    count: 0,
-    created_at: new Date().getTime(),
-    deliveryman_id: '',
-    note: 'Bem Assado\nTrinchado',
-    order_state: 'new',
-    payment_method: 'money',
-    payment_state: 'pendent',
-    products: [
-        {
-            amount: 1,
-            name: 'frango com baião',
-            price: 23
-        },
-        {
-            amount: 2,
-            name: 'batata frita',
-            price: 10
-        },
-        {
-            amount: 5,
-            name: 'linguiça',
-            price: 3
-        }
-    ],
-    tax: 2.0,
-    toDelivery: true,
-    total: 60.00
-}
+let sse: EventSource
 
 export default function Planilha({ deliverymans, products, orders }: PlanilhaProps) {
-    if (deliverymanState.data.length === 0) deliverymanState.data.push(...deliverymans)
-    if (productState.data.length === 0) productState.data.push(...products)
+    if (deliverymansState.data.length === 0) deliverymansState.data.push(...deliverymans)
+    if (productsState.data.length === 0) productsState.data.push(...products)
+    if (ordersState.orders.length === 0) addOrders(...orders)
 
-    return <div className='flex flex-wrap w-full p-[2rem] justify-between px-[8rem]'>
-        <OrderCard order={mockOrder} />
-        <OrderCard order={mockOrder} />
-        <OrderCard order={mockOrder} />
-        <OrderCard order={mockOrder} />
-    </div>
+    if (sse == null && typeof window !== 'undefined') {
+        console.log(api.getUri())
+        sse = new EventSource(api.getUri() + '/order?sse=true')
+        sse.addEventListener('setup', event => {
+            dynamicOptions.id = event.data
+        })
+        sse.addEventListener('lock', event => {
+            const count = Number(event.data)
+            const order = ordersState.orders[count].order
+            order.locked = true
+            updateOrder(order)
+        })
+        sse.addEventListener('unlock', event => {
+            const count = Number(event.data)
+            const order = ordersState.orders[count].order
+            order.locked = false
+            updateOrder(order)
+        })
+        sse.addEventListener('update-order', event => {
+            const order = JSON.parse(event.data) as ControlledOrder
+            updateOrder(order)
+        })
+    }
+
+    return <>
+        <div className='flex flex-wrap w-full p-[2rem] justify-between px-[8rem]'>
+            {ordersState.orders.map((os, idx) => <OrderCard key={idx} os={os} />)}
+        </div>
+        <RegisterOrder />
+    </>
 }
 
 
@@ -65,7 +59,7 @@ export async function getServerSideProps() {
         title: 'Planilha',
         deliverymans: [] as Deliveryman[],
         products: [] as Product[],
-        orders: [] as Order[]
+        orders: [] as ControlledOrder[]
     }
 
     const [deliverymans, products, orders] = await Promise.all([
@@ -73,9 +67,9 @@ export async function getServerSideProps() {
         api.get('/product'),
         api.get('order')
     ])
-    props.deliverymans = JSON.parse(deliverymans.data)
-    props.products = JSON.parse(products.data)
-    props.orders = JSON.parse(orders.data)
+    props.deliverymans = typeof deliverymans.data === 'string'? JSON.parse(deliverymans.data): deliverymans.data
+    props.products = typeof products.data === 'string'? JSON.parse(products.data): products.data
+    props.orders = typeof orders.data === 'string'? JSON.parse(orders.data): orders.data
 
     return { props }
 }
