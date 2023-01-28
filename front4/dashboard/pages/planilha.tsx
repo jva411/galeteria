@@ -22,7 +22,6 @@ export default function Planilha({ deliverymans, products, orders }: PlanilhaPro
     if (ordersState.orders.length === 0) addOrders(...orders)
 
     if (sse == null && typeof window !== 'undefined') {
-        console.log(api.getUri())
         sse = new EventSource(api.getUri() + '/order?sse=true')
         sse.addEventListener('setup', event => {
             dynamicOptions.id = event.data

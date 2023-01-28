@@ -27,7 +27,7 @@ function getEmptyOrder(index: number): ControlledOrder {
         products: [],
         tax: 2.0,
         toDelivery: true,
-        total: 0.0,
+        total: 2.0,
         saved: false,
         locked: false
     }
@@ -36,7 +36,7 @@ function getEmptyOrder(index: number): ControlledOrder {
 const today: Date = new Date()
 export const orders: ControlledOrder[] = []
 getOrders({}, today).then(data => {
-    orders.push(...data.map(order => Object.assign(order, {saved: true})) as unknown as ControlledOrder[])
+    orders.push(...data.map(order => Object.assign(order, {saved: true, _id: order._id.toString()})) as unknown as ControlledOrder[])
     for (let i=0; i<orders.length; i++) orders[i].count = i
     for (let i=orders.length; i<100; i++) orders.push(getEmptyOrder(i))
 })
@@ -63,6 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         case 'POST': {
             const data = req.body as OrderData & {_id?: string, saved: boolean, locked: boolean}
             delete data['_id']
+            data.created_at = new Date().getTime()
             const result = await addOrder(data)
             data['_id'] = result.insertedId.toString()
             data['saved'] = true

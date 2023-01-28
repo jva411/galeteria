@@ -1,5 +1,6 @@
 import Card from './card'
 import api from 'utils/axios'
+import { DateTime } from 'luxon'
 import { useState } from 'react'
 import { MdEdit } from 'react-icons/md'
 import { OrderFilter } from 'utils/api/order'
@@ -47,16 +48,18 @@ function handleUpdate(cb: () => void) {
 export default function OrderCard({ os }: OrderCardProps) {
     const { order: data, listeners } = os
     const [order, setOrder] = useState(data)
-    listeners[`order-card-${order.count}`] = () => setOrder({...os.order})
+    listeners[`order-card-${order.count}`] = (event, data) => event === 'update-order' && setOrder({...data})
 
-    const cardStyles = `relative flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem] ${cardColors[order.order_state]}`
+    const cardStyles = `relative flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem]
+        ${cardColors[order.order_state]} ${order.locked? 'cursor-not-allowed brightness-50': ''}`
     const lockStyles = `absolute top-[0.5rem] right-[2.5rem] cursor-pointer`
     const editStyles = `absolute top-[0.5rem] right-[0.5rem] ${order.locked? 'cursor-not-allowed': 'cursor-pointer'}`
     const address = `${order.address.address || 'rua'}, ${order.address.number}` + (order.address.note? ` - ${order.address.note}`: '')
     const changes: OrderFilter = {}
     const canUpdate = order._id !== ''
+    const datetime = DateTime.fromMillis(order.saved? order.created_at: new Date().getTime())
 
-    async function sendUpdateOrder() {
+    async function sendUpdate() {
         await api.put(
             `/order/${order._id}`,
             JSON.stringify(changes),
@@ -69,7 +72,7 @@ export default function OrderCard({ os }: OrderCardProps) {
         changes['order_state'] = state
         handleUpdate(async () => {
             try {
-                await sendUpdateOrder()
+                await sendUpdate()
                 updateOrder(Object.assign(order, changes))
             } catch (Exception) {}
         })
@@ -77,13 +80,13 @@ export default function OrderCard({ os }: OrderCardProps) {
 
     function lock() {
         api.patch(`/order?lock=true&count=${order.count}`)
-        order.locked = true
-        updateOrder(order)
+        os.order.locked = true
+        updateOrder(os.order)
     }
     function unlock() {
         api.patch(`/order?lock=false&count=${order.count}`)
-        order.locked = false
-        updateOrder(order)
+        os.order.locked = false
+        updateOrder(os.order)
     }
 
     function openEdit() {
@@ -92,9 +95,11 @@ export default function OrderCard({ os }: OrderCardProps) {
             lock()
         }
     }
+    // order.note = 'Bem Assado\nTrinchado\nJosé Uilton\nTocar campainha\nAvisar quando sair'
 
     return <Card className={cardStyles}>
         <span className=''>Nº {order.count+1}</span>
+        <span className='absolute top-[0.5rem] left-[0.5rem] text-[1.4rem] text-gray-600'>{datetime.toFormat('hh:mm')}</span>
         <MdEdit className={editStyles} title='Editar' onClick={() => openEdit()} />
         {order.locked
             ? <FcLock className={lockStyles} title='Desbloquear' onClick={unlock} />
@@ -104,6 +109,10 @@ export default function OrderCard({ os }: OrderCardProps) {
             <span className='w-[12rem] capitalize'>{address}</span>
             <ProductList products={order.products} />
         </div>
+        {order.note?
+            <div className='w-full border-t-[0.1rem] border-black'><b>OBS:</b> {order.note.split('\n').join('; ')}.</div>
+            : <></>
+        }
         <div className='flex w-full text-[1.4rem] border-t-[0.1rem] border-black pt-[1rem]'>
             <div className='flex flex-col space-y-[1rem]'>
                 <select>
