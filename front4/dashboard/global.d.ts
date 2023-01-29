@@ -40,6 +40,7 @@ interface Order {
     products: ProductOrder[]
     total: number
     tax: number
+    payment: number
     note: string
     deliveryman_id: string
     payment_method: PaymentMethod

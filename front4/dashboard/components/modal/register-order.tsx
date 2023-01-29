@@ -29,16 +29,18 @@ export function RegisterOrder() {
         const temp = props!.order
         const newOrder = {...temp}
         newOrder.products = []
-        let i = 0;
-        for (const product of productsState.data) {
-            if (i < temp.products.length && temp.products[i].name === product.name) {
-                newOrder.products.push(temp.products[i])
-                i++
-            } else {
-                newOrder.products.push({...product, amount: 0})
+        if (typeof temp !== 'undefined') {
+            let i = 0;
+            for (const product of productsState.data) {
+                if (i < temp.products.length && temp.products[i].name === product.name) {
+                    newOrder.products.push(temp.products[i])
+                    i++
+                } else {
+                    newOrder.products.push({...product, amount: 0})
+                }
             }
+            newOrder.address = {...newOrder.address}
         }
-        newOrder.address = {...newOrder.address}
         setOrder(newOrder)
     }
     function close() {
@@ -46,6 +48,10 @@ export function RegisterOrder() {
         props?.onClose(props)
     }
 
+    function handleChangeAddress(field: 'address' | 'number' | 'note', value: string | number) {
+        order!.address[field] = value as never
+        setOrder({...order!})
+    }
     function handleChangeAmount(p: ProductOrder, value: number) {
         const old = p.amount
         p.amount = value
@@ -68,8 +74,9 @@ export function RegisterOrder() {
 
     async function createOrder() {
         order!.note = order!.note.trim()
-        order!.address.address = order!.address.address.trim()
+        order!.address.address = order!.address.address.trim().toLowerCase()
         order!.address.note = order!.address.note.trim()
+        order!.products = order!.products.filter(p => p.amount > 0)
 
         if (order!._id) {
             api.put('/order/' + order!._id, JSON.stringify(order!), {headers: {'Content-Type': 'application/json'}})
@@ -89,13 +96,13 @@ export function RegisterOrder() {
         <div className='flex w-full h-full'>
             <div className='flex flex-col w-[32rem] py-[0.5rem] pr-[1rem] border-y-[0.1rem] border-black'>
                 <div className='flex mb-[1rem]'>
-                    <input list='address' className='grow h-[3rem] mr-[1rem]' placeholder='Rua' autoFocus />
+                    <input list='address' className='grow h-[3rem] mr-[1rem]' placeholder='Rua' autoFocus value={order?.address.address} onChange={e => handleChangeAddress('address', e.currentTarget.value)} />
                     <datalist id='address'>
                         <option value='Primeiro de Maio' />
                     </datalist>
-                    <NumberInput placeholder='Casa' className='w-[7rem]' onChange={() => {}} />
+                    <NumberInput placeholder='Casa' className='w-[7rem]' defaultValue={order?.address.number} onChange={value => handleChangeAddress('number', value)} />
                 </div>
-                <input placeholder='Complemento' className='w-full mb-[1rem]' />
+                <input placeholder='Complemento' className='w-full mb-[1rem]' value={order?.address.note} onChange={e => handleChangeAddress('note', e.currentTarget.value)} />
                 <div className='border-black border-t-[0.1rem] pt-[1rem] mt-[1rem]'>
                     <textarea className='w-full h-[9rem] p-[0.4rem] text-[1.4rem] rounded-[0.9rem] resize-none border-black border-[0.1rem]' placeholder='Obeservações' value={order?.note} onChange={e => handleChangeNote(e.currentTarget.value)} />
                     <div className='flex text-[1.4rem]'>
@@ -113,7 +120,7 @@ export function RegisterOrder() {
             <ul className='pl-[1rem] py-[0.5rem] grow space-y-[0.5rem] border-black border-l-[0.1rem] border-y-[0.1rem]'>
                 {order?.products.map((p, idx) => <li key={idx} className='justify-between flex capitalize'>
                     <div className='flex'>
-                        <NumberInput className='w-[5rem] mr-[0.5rem]' defaultValue={p.amount} onChange={value => handleChangeAmount(p, value)} transform={v => Math.max(v, 0)} />
+                        <NumberInput className='w-[5rem] mr-[0.5rem]' realValue={p.amount} onChange={value => handleChangeAmount(p, value)} transform={v => Math.max(v, 0)} />
                         <span>{p.name}</span>
                     </div>
                     <span>R$ {(p.amount * p.price).toFixed(2)}</span>

@@ -26,6 +26,7 @@ function getEmptyOrder(index: number): ControlledOrder {
         payment_state: 'pendent',
         products: [],
         tax: 2.0,
+        payment: 0.0,
         toDelivery: true,
         total: 2.0,
         saved: false,

@@ -11,12 +11,13 @@ interface NumberInputProps {
     defaultValue?: number
     inline?: boolean
     className?: string
+    realValue?: number
     onChange: (value: number) => void
     transform?: (value: number) => number
 }
 
 
-export default function NumberInput({ onChange, transform, ...props }: NumberInputProps) {
+export default function NumberInput({ onChange, transform, realValue, ...props }: NumberInputProps) {
     const [value, setValue] = useState<number>(0)
 
     function handleChange(value: string) {
@@ -28,7 +29,7 @@ export default function NumberInput({ onChange, transform, ...props }: NumberInp
 
     return <Input
         type='number'
-        value={value}
+        value={typeof realValue === 'number' ? realValue : value}
         onChange={e => handleChange(e.currentTarget.value)}
         onKeyDown={e => (e.key >= '0' && e.key <= '9')}
         {...props}

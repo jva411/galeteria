@@ -95,11 +95,10 @@ export default function OrderCard({ os }: OrderCardProps) {
             lock()
         }
     }
-    // order.note = 'Bem Assado\nTrinchado\nJosé Uilton\nTocar campainha\nAvisar quando sair'
 
     return <Card className={cardStyles}>
         <span className=''>Nº {order.count+1}</span>
-        <span className='absolute top-[0.5rem] left-[0.5rem] text-[1.4rem] text-gray-600'>{datetime.toFormat('hh:mm')}</span>
+        <span className='absolute top-[0.5rem] left-[0.5rem] text-[1.4rem] text-gray-600'>{datetime.toFormat('HH:mm')}</span>
         <MdEdit className={editStyles} title='Editar' onClick={() => openEdit()} />
         {order.locked
             ? <FcLock className={lockStyles} title='Desbloquear' onClick={unlock} />

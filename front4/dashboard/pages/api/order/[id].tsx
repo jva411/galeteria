@@ -1,11 +1,17 @@
 import { orders } from '.'
 import { sendEvent } from 'utils/api/sse'
 import { NextApiRequest, NextApiResponse } from 'next'
-import { OrderData, OrderFilter, updateOrder } from 'utils/api/order'
+import { getOrder, OrderData, OrderFilter, updateOrder } from 'utils/api/order'
 
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     switch (req.method) {
+        case 'GET': {
+            const id = req.query.id as string
+            const order = await getOrder(id)
+            res.json(order)
+            break
+        }
         case 'PUT': {
             const data = req.body as OrderFilter & {_id?: string}
             const id = data['_id']

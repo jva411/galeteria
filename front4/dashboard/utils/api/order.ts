@@ -18,6 +18,11 @@ export async function updateOrder(_id: string, data: OrderFilter) {
     })
 }
 
+export async function getOrder(id: string) {
+    const collection = await getCollection('order')
+    return collection.findOne({_id: new Types.ObjectId(id)})
+}
+
 export async function getOrders(filter: OrderFilter, day?: Date | number) {
     const collection = await getCollection('order')
     const query = {...filter}

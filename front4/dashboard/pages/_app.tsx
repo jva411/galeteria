@@ -5,7 +5,7 @@ import Header from 'components/header'
 
 
 export default function App({ Component, pageProps }: AppProps) {
-  const { title } = pageProps
+  const { title, minimize } = pageProps
 
   return <>
     <Head>
@@ -14,9 +14,14 @@ export default function App({ Component, pageProps }: AppProps) {
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <link rel="icon" href="/favicon.ico" />
     </Head>
-    <Header />
-    <div className='min-w-screen min-h-screen pt-[5rem]'>
-      <Component {...pageProps} />
-    </div>
+    {minimize ?
+        <Component {...pageProps} /> :
+        <>
+            <Header />
+            <div className='min-w-screen min-h-screen pt-[5rem]'>
+            <Component {...pageProps} />
+            </div>
+        </>
+    }
   </>
 }
