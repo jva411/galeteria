@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import OrderCard from 'components/card/order'
 import { ControlledOrder } from './api/order'
 import api, { dynamicOptions } from 'utils/axios'
+import Sidebar from 'components/planilha/sidebar'
 import { productsState } from 'utils/providers/product'
 import { deliverymansState } from 'utils/providers/deliveryman'
 import { addOrders, ordersState, updateOrder } from 'utils/providers/order'
@@ -17,6 +18,11 @@ interface PlanilhaProps {
 let sse: EventSource
 
 export default function Planilha({ deliverymans, products, orders }: PlanilhaProps) {
+    if (typeof window !== 'undefined') {
+        deliverymansState.data = []
+        productsState.data = []
+        ordersState.orders = []
+    }
     if (deliverymansState.data.length === 0) deliverymansState.data.push(...deliverymans)
     if (productsState.data.length === 0) productsState.data.push(...products)
     if (ordersState.orders.length === 0) addOrders(...orders)
@@ -40,7 +46,7 @@ export default function Planilha({ deliverymans, products, orders }: PlanilhaPro
         })
         sse.addEventListener('update-order', event => {
             const order = JSON.parse(event.data) as ControlledOrder
-            updateOrder(order)
+            updateOrder(order, true)
         })
     }
 
@@ -48,6 +54,7 @@ export default function Planilha({ deliverymans, products, orders }: PlanilhaPro
         <div className='flex flex-wrap w-full p-[2rem] justify-between px-[8rem]'>
             {ordersState.orders.map((os, idx) => <OrderCard key={idx} os={os} />)}
         </div>
+        <Sidebar />
         <RegisterOrder />
     </>
 }
@@ -64,7 +71,7 @@ export async function getServerSideProps() {
     const [deliverymans, products, orders] = await Promise.all([
         api.get('/deliveryman'),
         api.get('/product'),
-        api.get('order')
+        api.get('/order')
     ])
     props.deliverymans = typeof deliverymans.data === 'string'? JSON.parse(deliverymans.data): deliverymans.data
     props.products = typeof products.data === 'string'? JSON.parse(products.data): products.data

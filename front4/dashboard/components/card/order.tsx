@@ -6,9 +6,9 @@ import { MdEdit } from 'react-icons/md'
 import { OrderFilter } from 'utils/api/order'
 import PriceInput from 'components/input/price'
 import { FcLock, FcUnlock } from 'react-icons/fc'
-import { deliverymansState } from 'utils/providers/deliveryman'
-import { OrderState as ProviderOrderState, updateOrder } from 'utils/providers/order'
 import { controls } from 'components/modal/register-order'
+import { deliverymansState } from 'utils/providers/deliveryman'
+import { ordersState, OrderState as ProviderOrderState, updateOrder } from 'utils/providers/order'
 
 
 interface OrderCardProps {
@@ -19,7 +19,7 @@ interface ProductListProps {
 }
 
 const cardColors = {
-    'new': '[div>&]:bg-neutral-200',
+    'new': '[div>&]:bg-neutral-300',
     'in_progress': '[div>&]:bg-cyan-300',
     'complete': '[div>&]:bg-green-500',
     'canceled': '[div>&]:bg-[#bf5d52DD]'
@@ -36,13 +36,14 @@ function ProductList({ products }: ProductListProps) {
 let timeoutId: NodeJS.Timeout
 let waitToUpdate = false
 function handleUpdate(cb: () => void) {
+    // if (waitToUpdate) return
     if (timeoutId) clearTimeout(timeoutId);
 
     timeoutId = setTimeout(() => {
         cb()
         waitToUpdate = true
         setTimeout(() => waitToUpdate = false, 1000)
-    }, 500)
+    }, 0)
 }
 
 export default function OrderCard({ os }: OrderCardProps) {
@@ -50,13 +51,14 @@ export default function OrderCard({ os }: OrderCardProps) {
     const [order, setOrder] = useState(data)
     listeners[`order-card-${order.count}`] = (event, data) => event === 'update-order' && setOrder({...data})
 
+    const canUpdate = order._id !== ''
     const cardStyles = `relative flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem]
-        ${cardColors[order.order_state]} ${order.locked? 'cursor-not-allowed brightness-50': ''}`
+        ${cardColors[order.order_state]} ${order.locked? 'cursor-not-allowed brightness-50': ''}
+        ${canUpdate? 'border-solid': 'border-dashed brightness-75'}`
     const lockStyles = `absolute top-[0.5rem] right-[2.5rem] cursor-pointer`
     const editStyles = `absolute top-[0.5rem] right-[0.5rem] ${order.locked? 'cursor-not-allowed': 'cursor-pointer'}`
     const address = `${order.address.address || 'rua'}, ${order.address.number}` + (order.address.note? ` - ${order.address.note}`: '')
-    const changes: OrderFilter = {}
-    const canUpdate = order._id !== ''
+    const changes: OrderFilter = {count: order.count}
     const datetime = DateTime.fromMillis(order.saved? order.created_at: new Date().getTime())
 
     async function sendUpdate() {
@@ -67,9 +69,46 @@ export default function OrderCard({ os }: OrderCardProps) {
         )
     }
 
+    function handleSelectDeliveryman(id: string) {
+        if (!canUpdate) return
+        changes['deliveryman_id'] = id
+        sendUpdate()
+        updateOrder(Object.assign(order, changes))
+    }
     function handleSelectOrderState(state: OrderState) {
         if (!canUpdate) return
         changes['order_state'] = state
+        handleUpdate(async () => {  
+            try {
+                await sendUpdate()
+                updateOrder(Object.assign(order, changes))
+            } catch (Exception) {}
+        })
+    }
+    function handleSelectPaymentMethod(method: PaymentMethod) {
+        if (!canUpdate) return
+        changes['payment_method'] = method
+        handleUpdate(async () => {
+            try {
+                await sendUpdate()
+                updateOrder(Object.assign(order, changes))
+            } catch (Exception) {}
+        })
+    }
+    function handleSelectPaymentState(state: PaymentState) {
+        if (!canUpdate) return
+        changes['payment_state'] = state
+        handleUpdate(async () => {
+            try {
+                await sendUpdate()
+                updateOrder(Object.assign(order, changes))
+            } catch (Exception) {}
+        })
+    }
+    function handleChangeTax(value: number) {
+        if (!canUpdate) return
+        changes['tax'] = value
+        changes['total'] = order.total - order.tax + value
         handleUpdate(async () => {
             try {
                 await sendUpdate()
@@ -114,11 +153,11 @@ export default function OrderCard({ os }: OrderCardProps) {
         }
         <div className='flex w-full text-[1.4rem] border-t-[0.1rem] border-black pt-[1rem]'>
             <div className='flex flex-col space-y-[1rem]'>
-                <select>
+                <select disabled={!order.toDelivery} value={order.deliveryman_id} onChange={e => handleSelectDeliveryman(e.currentTarget.value)}>
                     <option value=''>--Entregador--</option>
                     {deliverymansState.data.map((d, idx) => <option key={idx} value={d._id}>{d.name}</option>)}
                 </select>
-                <select>
+                <select value={order.payment_method} onChange={e => handleSelectPaymentMethod(e.currentTarget.value as PaymentMethod)}>
                     <option value='money'>Dinheiro</option>
                     <option value='card'>Cartão</option>
                     <option value='pix'>PIX</option>
@@ -126,21 +165,20 @@ export default function OrderCard({ os }: OrderCardProps) {
                 </select>
             </div>
             <div className='flex flex-col space-y-[1rem] ml-[1rem]'>
-                <select onChange={e => handleSelectOrderState(e.currentTarget.value as OrderState)}>
+                <select value={order.order_state} onChange={e => handleSelectOrderState(e.currentTarget.value as OrderState)}>
                     <option value='new'>Novo</option>
                     <option value='in_progress'>Em Rota</option>
                     <option value='complete'>Concluído</option>
                     <option value='canceled'>Cancelado</option>
                 </select>
-                <select>
-                    <option value='money'>Dinheiro</option>
-                    <option value='card'>Cartão</option>
-                    <option value='pix'>PIX</option>
-                    <option value='fiado'>Fiado</option>
+                <select value={order.payment_state} onChange={e => handleSelectPaymentState(e.currentTarget.value as PaymentState)}>
+                    <option value='pendent'>À pagar</option>
+                    <option value='complete'>Pago</option>
+                    <option value='canceled'>Cancelou</option>
                 </select>
             </div>
             <div className='flex flex-col space-y-[1rem] ml-[1rem]'>
-                <PriceInput label='taxa:' className='w-[10rem] h-[2rem]' inline defaultValue={order.tax} onChange={v => console.log(v)} />
+                <PriceInput label='taxa:' className='w-[10rem] h-[2rem]' inline realValue={order.tax} onChange={v => handleChangeTax(v)} />
                 <span className='font-semibold'>Total: R${order.total.toFixed(2)}</span>
             </div>
         </div>

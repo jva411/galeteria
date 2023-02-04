@@ -5,6 +5,7 @@ import { ControlledOrder } from 'pages/api/order'
 import NumberInput from 'components/input/number'
 import { productsState } from 'utils/providers/product'
 import { updateOrder } from 'utils/providers/order'
+import PriceInput from 'components/input/price'
 
 
 interface RegisterOrderProps {
@@ -71,6 +72,10 @@ export function RegisterOrder() {
         order!.toDelivery = checked
         setOrder({...order!})
     }
+    function handleChangePayment(value: number) {
+        order!.payment = value
+        setOrder({...order!})
+    }
 
     async function createOrder() {
         order!.note = order!.note.trim()
@@ -100,13 +105,13 @@ export function RegisterOrder() {
                     <datalist id='address'>
                         <option value='Primeiro de Maio' />
                     </datalist>
-                    <NumberInput placeholder='Casa' className='w-[7rem]' defaultValue={order?.address.number} onChange={value => handleChangeAddress('number', value)} />
+                    <NumberInput placeholder='Casa' className='w-[7rem]' realValue={order?.address.number} onChange={value => handleChangeAddress('number', value)} />
                 </div>
                 <input placeholder='Complemento' className='w-full mb-[1rem]' value={order?.address.note} onChange={e => handleChangeAddress('note', e.currentTarget.value)} />
                 <div className='border-black border-t-[0.1rem] pt-[1rem] mt-[1rem]'>
                     <textarea className='w-full h-[9rem] p-[0.4rem] text-[1.4rem] rounded-[0.9rem] resize-none border-black border-[0.1rem]' placeholder='Obeservações' value={order?.note} onChange={e => handleChangeNote(e.currentTarget.value)} />
-                    <div className='flex text-[1.4rem]'>
-                        {['Bem Assado', 'Trinchado'].map((opt, idx) => <div key={idx}>
+                    <div className='flex flex-wrap text-[1.4rem]'>
+                        {['Bem Assado', 'Trinchado', 'Sem Cortar', 'No Ponto'].map((opt, idx) => <div key={idx} className='w-[15rem]'>
                             <input type='checkbox' id={opt} checked={order?.note.toLowerCase().includes(opt.toLowerCase())} onChange={e => handleOBSCheck(opt, e.currentTarget.checked)} />
                             <label htmlFor={opt} className='ml-[0.5rem] mr-[2rem]'>{opt}</label>
                         </div>)}
@@ -131,7 +136,8 @@ export function RegisterOrder() {
                 </li>
             </ul>
         </div>
-        <div className='flex mt-[0.5rem] pt-[1rem] w-full justify-end'>
+        <div className='flex mt-[0.5rem] pt-[1rem] w-full justify-between'>
+            <PriceInput label='Troco' realValue={order?.payment} onChange={handleChangePayment} />
             <button className='bg-green-500 text-white font-bold w-[8rem] h-[6rem] rounded-[0.8rem]' type='button' onClick={createOrder}>Salvar</button>
         </div>
     </Modal>

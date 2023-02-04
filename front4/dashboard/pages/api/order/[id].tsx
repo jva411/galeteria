@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
         case 'PUT': {
             const data = req.body as OrderFilter & {_id?: string}
-            const id = data['_id']
+            const id = req.query.id as string
             const updateData = {...data}
             delete updateData['_id']
             delete updateData['created_at']

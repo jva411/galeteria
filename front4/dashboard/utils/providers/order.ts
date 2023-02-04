@@ -35,8 +35,8 @@ export function addOrders(...orders: ControlledOrder[]) {
     }
 }
 
-export function updateOrder(order: ControlledOrder) {
+export function updateOrder(order: ControlledOrder, changesOnly = false) {
     const os = ordersState.orders[order.count]
-    os.order = order
-    os.notify('update-order', order)
+    os.order = changesOnly? {...os.order, ...order} : order
+    os.notify('update-order', os.order)
 }

@@ -9,13 +9,14 @@ interface PriceInputProps {
     placeholder?: string
     step?: number
     defaultValue?: number
+    realValue?: number
     inline?: boolean
     className?: string
     onChange: (value: number) => void
 }
 
 
-export default function PriceInput({ onChange, step, defaultValue, inline, ...props }: PriceInputProps) {
+export default function PriceInput({ onChange, step, defaultValue, realValue, inline, ...props }: PriceInputProps) {
     const [price, setPrice] = useState(defaultValue || 0)
 
     function handleChange(e: React.FormEvent<HTMLInputElement>) {
@@ -31,26 +32,12 @@ export default function PriceInput({ onChange, step, defaultValue, inline, ...pr
         }
     }
 
-    function handleKeyDown(key: string) {
-        switch (key) {
-            case 'ArrowUp': {
-                setPrice(price + (step || 0.1))
-                break
-            }
-            case 'ArrowDown': {
-                setPrice(Math.max(price - (step || 0.1), 0))
-                break
-            }
-        }
-    }
-
     return <Input
         {...props}
         step={step || 0.1}
         min={0}
-        value={'R$ ' + price.toFixed(2)}
+        value={'R$ ' + (typeof realValue === 'number' ? realValue.toFixed(2) : price.toFixed(2))}
         inline={inline}
         onChange={handleChange}
-        onKeyDown={e => handleKeyDown(e.key)}
     />
 }
