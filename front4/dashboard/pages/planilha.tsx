@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import OrderCard from 'components/card/order'
 import { ControlledOrder } from './api/order'
+import { OrderFilter } from 'utils/api/order'
+import { MdFilterList } from 'react-icons/md'
 import api, { dynamicOptions } from 'utils/axios'
 import Sidebar from 'components/planilha/sidebar'
 import { productsState } from 'utils/providers/product'
@@ -50,9 +52,27 @@ export default function Planilha({ deliverymans, products, orders }: PlanilhaPro
         })
     }
 
+    const [filter, setFilter] = useState<OrderFilter>({})
+    const filteredOrders = ordersState.orders.filter(order => Object.keys(filter).reduce((acc, key) => acc && filter[key as keyof OrderFilter] === order.order[key as keyof OrderFilter], true))
+
+    function handleFilterDeliveryman(deliveryman_id: string) {
+        if (deliveryman_id === '') setFilter({})
+        else setFilter({deliveryman_id})
+    }
+
     return <>
         <div className='flex flex-wrap w-full p-[2rem] justify-between px-[8rem]'>
-            {ordersState.orders.map((os, idx) => <OrderCard key={idx} os={os} />)}
+            {filteredOrders.map((os, idx) => <OrderCard key={idx} os={os} />)}
+        </div>
+        <label htmlFor='filter' className='fixed top-[5.5rem] right-[1rem] text-[2.8rem] rounded-full border-gray border-[1px] p-[0.6rem] cursor-pointer'>
+            <MdFilterList />
+        </label>
+        <input type='checkbox' id='filter' className='fixed top-[5.5rem] right-[1rem] invisible [&:checked+div.filterOptions]:flex' onChange={e => console.log(`checked? ${e.currentTarget.checked}`)} />
+        <div className='filterOptions hidden w-[15rem] p-[0.5rem] bg-white border-black border-[1px] fixed top-[7rem] right-[5.2rem] [&>*]:w-full'>
+            <select value={filter.deliveryman_id} onChange={e => handleFilterDeliveryman(e.currentTarget.value)}>
+                <option value=''>--Entregador--</option>
+                {deliverymansState.data.map((d, idx) => <option key={idx} value={d._id}>{d.name}</option>)}
+            </select>
         </div>
         <Sidebar />
         <RegisterOrder />

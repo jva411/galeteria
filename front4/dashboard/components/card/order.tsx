@@ -2,12 +2,12 @@ import Card from './card'
 import api from 'utils/axios'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
-import { MdEdit } from 'react-icons/md'
 import { OrderFilter } from 'utils/api/order'
 import PriceInput from 'components/input/price'
-import { FcLock, FcUnlock } from 'react-icons/fc'
+import { MdEdit, MdEditOff } from 'react-icons/md'
 import { controls } from 'components/modal/register-order'
 import { deliverymansState } from 'utils/providers/deliveryman'
+import { BsFillLockFill, BsFillUnlockFill } from 'react-icons/bs'
 import { ordersState, OrderState as ProviderOrderState, updateOrder } from 'utils/providers/order'
 
 
@@ -55,7 +55,7 @@ export default function OrderCard({ os }: OrderCardProps) {
     const cardStyles = `relative flex-col p-[0.5rem] w-[37rem] h-auto [div>&]:justify-start mb-[2rem] mr-[2rem]
         ${cardColors[order.order_state]} ${order.locked? 'cursor-not-allowed brightness-50': ''}
         ${canUpdate? 'border-solid': 'border-dashed brightness-75'}`
-    const lockStyles = `absolute top-[0.5rem] right-[2.5rem] cursor-pointer`
+    const lockStyles = `absolute top-[0.5rem] right-[2.5rem] cursor-pointer ${order.locked? 'text-red-500': 'text-green-600'}`
     const editStyles = `absolute top-[0.5rem] right-[0.5rem] ${order.locked? 'cursor-not-allowed': 'cursor-pointer'}`
     const address = `${order.address.address || 'rua'}, ${order.address.number}` + (order.address.note? ` - ${order.address.note}`: '')
     const changes: OrderFilter = {count: order.count}
@@ -78,7 +78,7 @@ export default function OrderCard({ os }: OrderCardProps) {
     function handleSelectOrderState(state: OrderState) {
         if (!canUpdate) return
         changes['order_state'] = state
-        handleUpdate(async () => {  
+        handleUpdate(async () => {
             try {
                 await sendUpdate()
                 updateOrder(Object.assign(order, changes))
@@ -138,10 +138,15 @@ export default function OrderCard({ os }: OrderCardProps) {
     return <Card className={cardStyles}>
         <span className=''>Nº {order.count+1}</span>
         <span className='absolute top-[0.5rem] left-[0.5rem] text-[1.4rem] text-gray-600'>{datetime.toFormat('HH:mm')}</span>
-        <MdEdit className={editStyles} title='Editar' onClick={() => openEdit()} />
         {order.locked
-            ? <FcLock className={lockStyles} title='Desbloquear' onClick={unlock} />
-            : <FcUnlock className={lockStyles} title='Bloquear' onClick={lock} />
+            ? <>
+                <MdEditOff className={editStyles} title='Editar' onClick={() => openEdit()} />
+                <BsFillLockFill className={lockStyles} title='Desbloquear' onClick={unlock} />
+            </>
+            : <>
+                <MdEdit className={editStyles} title='Editar' onClick={() => openEdit()} />
+                <BsFillUnlockFill className={lockStyles} title='Bloquear' onClick={lock} />
+            </>
         }
         <div className='flex w-full text-[1.4rem] border-t-[0.1rem] border-black'>
             <span className='w-[12rem] capitalize'>{address}</span>

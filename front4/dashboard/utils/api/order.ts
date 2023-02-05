@@ -30,16 +30,16 @@ export async function getOrders(filter: OrderFilter, day?: Date | number) {
     if (day instanceof Date) {
         day.setUTCHours(0, 0, 0, 0)
         query['created_at'] = {
-            '$get': day.getTime(),
+            '$gte': day.getTime(),
             '$lt': day.getTime() + 86400000
         }
     } else if (typeof day === 'number') {
         query['created_at'] = {
-            '$get': day,
+            '$gte': day,
             '$lt': day + 86400000
         }
     }
-    return collection.find(filter, {sort: {count: 'asc'}}).toArray()
+    return collection.find(query, {sort: {count: 'asc'}}).toArray()
 }
 
 export async function removeOrder(_id: string) {
